@@ -4,8 +4,6 @@ from trackyr.config import Config
 from flask_migrate import Migrate
 
 db = SQLAlchemy()
-#migrate = Migrate(app, db)
-
 
 def create_app(config_class=Config):
     app = Flask(__name__)
