@@ -1,0 +1,63 @@
+{% extends "layout.html" %}
+{% block content %}
+    <h1>{{ title }}</h1>
+    <p>
+        <a class="btn btn-primary" href="{{ url_for('sources.create_source') }}">Create Sources</a>
+    </p>
+
+    <h3>Kijiji</h3>
+    <table class="table table-hover">
+        <thead>
+            <tr>
+                <th scope="col">Name</th>
+                <th scope="col">Website</th>
+                <th scope="col">Location</th>
+                <th scope="col">Range</th>
+                <th scope="col"></th>
+                <th scope="col"></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for source in sources %}
+                {% if source.module == 1 %} 
+                    <tr>
+                        <td>{{ source.name }}</td>
+                        <td>{{ source.website }}</td>
+                        <td>{{ source.location }}</td>
+                        <td>{{ source.range }} km</td>
+                        <td><a class="btn btn-secondary btm-sm mt-1 mb-1" href="{{ url_for('sources.edit_source', source_id=source.id) }}">Edit</a></td>
+                        <td><a class="btn btn-danger btm-sm mt-1 mb-1" href="{{ url_for('sources.delete_source', source_id=source.id) }}">Delete</a></td>
+                    </tr>
+                {% endif %}
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <!-- <h3>Reddit</h3>
+    <table class="table table-hover">
+        <thead>
+            <tr>
+                <th scope="col">Name</th>
+                <th scope="col">Subreddit</th>
+                <th scope="col"></th>
+                <th scope="col"></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for source in sources %}
+                {% if source.module == 2 %}
+                    <tr>
+                        <td>{{ source.name }}</td>
+                        <td>{{ source.subreddit }}</td>
+                        <td><a class="btn btn-secondary btm-sm mt-1 mb-1" href="{{ url_for('sources.edit_source', source_id=source.id) }}">Edit</a></td>
+                        <td><a class="btn btn-danger btm-sm mt-1 mb-1" href="{{ url_for('sources.delete_source', source_id=source.id) }}">Delete</a></td>
+                    </tr>
+                {% endif %}
+            {% endfor %}
+        </tbody>
+    </table> -->
+
+    <p>
+        <a class="btn btn-primary" href="{{ url_for('sources.create_source') }}">Create Sources</a>
+    </p>
+{% endblock content %}

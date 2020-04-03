@@ -1,0 +1,48 @@
+{% extends "layout.html" %}
+{% block content %}
+    <h1>{{ title }}</h1>
+    <p>
+        <a class="btn btn-primary" href="{{ url_for('tasks.create_tasks') }}">Create Tasks</a>
+    </p>
+
+    <table class="table table-hover">
+        <thead>
+            <tr>
+                <th scope="col">Name</th>
+                <th scope="col">Frequency</th>
+                <th scope="col">Source</th>
+                <th scope="col">Notification Agent</th>
+                <th scope="col">Must Contain</th>
+                <th scope="col">Exclude(s)</th>
+                <th scope="col"></th>
+                <th scope="col"></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for task in tasks %}
+                <tr>
+                    <td>{{ task.name }}</td>
+                    <td>{{ task.frequency }} Minutes</td>
+                    {% for source in sources %}
+                        {% if task.source == source.id %}
+                            <td>{{ source.name }}</td>
+                        {% endif %}
+                    {% endfor %}
+                    {% for notification_agent in notification_agents %}
+                        {% if task.notification_agent == notification_agent.id %}
+                            <td>{{ notification_agent.name }}</td>
+                        {% endif %}
+                    {% endfor %}
+                    <td>{{ task.must_contain }}</td>
+                    <td>{{ task.exclude }}</td>
+                    <td><a class="btn btn-secondary btm-sm mt-1 mb-1" href="{{ url_for('tasks.edit_task', task_id=task.id) }}">Edit</a></td>
+                    <td><a class="btn btn-danger btm-sm mt-1 mb-1" href="{{ url_for('tasks.delete_task', task_id=task.id) }}">Delete</a></td>
+                </tr>    
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <p>
+        <a class="btn btn-primary" href="{{ url_for('tasks.create_tasks') }}">Create Tasks</a>
+    </p>
+{% endblock content %}
