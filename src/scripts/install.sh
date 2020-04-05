@@ -10,11 +10,11 @@ sudo apt upgrade -y
 sudo apt install git python3 python3-pip python3-flask postgresql postgresql-contrib -y
 
 # clone github repo
-sudo git clone https://github.com/Fyre-Homelab/Trackyr.git /home/$uservar/Trackyr
+sudo git clone https://github.com/Trackyr/Trackyr.git /home/$uservar/Trackyr
 sudo chown -R $uservar:$uservar /home/$uservar/Trackyr/
 
 # install pips
-sudo pip3 install -r ~/Trackyr/requirements.txt
+sudo pip3 install -r ~/Trackyr/src/requirements.txt
 
 # prepare config file for postgresql
 sudo mkdir /etc/trackyr/ && sudo touch /etc/trackyr/config.json
@@ -39,7 +39,7 @@ sudo -u $uservar createdb trackyr
 # psql -U trackyrsu -d trackyr
 
 # build database
-cd /home/$uservar/Trackyr
+cd /home/$uservar/Trackyr/src
 export FLASK_APP=run.py
 flask db init
 flask db migrate
