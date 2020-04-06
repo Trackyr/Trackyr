@@ -7,7 +7,7 @@ import importlib
 #import json
 import inspect
 
-import reflection_lib as refl
+from . import reflection_lib as refl
 
 
 class BaseScraper():

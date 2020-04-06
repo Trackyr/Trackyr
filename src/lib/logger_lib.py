@@ -6,7 +6,7 @@ import importlib
 import logging
 from logging.handlers import RotatingFileHandler
 
-import settings_lib as settings
+from . import settings_lib as settings
 
 if settings.get("log_rotation_files") < 0:
      settings.log_rotation_files = 1

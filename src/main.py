@@ -16,19 +16,19 @@ import argparse
 current_directory = os.path.dirname(os.path.realpath(__file__))
 
 # import settings file first so other modules can use settings
-import settings_lib as settings
+import lib.settings_lib as settings
 settings_file = current_directory + "/settings.yaml"
 settings.load(settings_file)
 
-import notification_agent_lib as agentlib
-import scraper_lib as scraperlib
-import task_lib as tasklib
-import source_lib as sourcelib
-import cron_lib as cronlib
-import creator_utils_lib as creator
+import lib.notification_agent_lib as agentlib
+import lib.scraper_lib as scraperlib
+import lib.task_lib as tasklib
+import lib.source_lib as sourcelib
+import lib.cron_lib as cronlib
+import lib.creator_utils_lib as creator
 
-import reflection_lib as refl
-import logger_lib as log
+import lib.reflection_lib as refl
+import lib.logger_lib as log
 
 
 ads_file = f"{current_directory}/ads.json"
@@ -51,7 +51,7 @@ with open(ads_file, "r") as stream:
 
 tasks = tasklib.load_tasks(tasks_file)
 sources = sourcelib.load(sources_file)
-scrapers = scraperlib.get_scrapers(current_directory, "scrapers")
+scrapers = scraperlib.get_scrapers(current_directory, "sources")
 agents = agentlib.get_agents(current_directory, notif_agents_file, notif_agents_dir)
 notif_agent_modules = agentlib.get_modules(current_directory, notif_agents_dir)
 

@@ -6,12 +6,12 @@ import os
 import importlib
 #import json
 import inspect
-import reflection_lib as refl
-import logger_lib as log
+import lib.reflection_lib as refl
+import lib.logger_lib as log
 import uuid
 import re
 
-import creator_utils_lib as creator
+import lib.creator_utils_lib as creator
 
 class notif_agent:
     enabled = True

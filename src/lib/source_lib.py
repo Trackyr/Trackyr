@@ -8,7 +8,7 @@ import subprocess
 import re
 import uuid
 
-import creator_utils_lib as creator
+from . import creator_utils_lib as creator
 
 class Source:
     def __init__(self, **kwargs):

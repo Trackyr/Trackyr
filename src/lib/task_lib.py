@@ -7,7 +7,7 @@ import collections
 import subprocess
 import re
 
-import creator_utils_lib as creator
+from . import creator_utils_lib as creator
 
 minute="minute"
 hour="hour"
