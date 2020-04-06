@@ -1,0 +1,9 @@
+# log_rotation_files: number of files to keep in log rotation
+# global_include: a global include that spans across all tasks
+# global_exclude: a global exclude that spans across all tasks
+# recent_ads: only display the most recent number of ads 
+#             to prevent a large notification dump
+gobal_exclude: []
+gobal_include: []
+log_rotation_files: 5
+recent_ads: 3

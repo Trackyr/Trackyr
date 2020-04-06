@@ -5,7 +5,7 @@ def _get_defaults():
     s = {}
     s["gobal_include"] = []
     s["gobal_exclude"] = []
-    s["recent_ads"] = 3
+    s["recent_ads"] = 0
     s["log_rotation_files"] = 5
     return s
 

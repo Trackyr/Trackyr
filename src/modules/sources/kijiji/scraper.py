@@ -4,7 +4,7 @@ import  os
 import requests
 from bs4 import BeautifulSoup
 import json
-from scrapers.kijiji.ad import KijijiAd
+from modules.sources.kijiji.ad import KijijiAd
 from pathlib import Path
 import re
 
@@ -35,6 +35,8 @@ class KijijiScraper():
         self.exclude = exclude
 
         url = kwargs["url"]
+        print (url)
+
         title = None
         while url:
             # Get the html data from the URL
