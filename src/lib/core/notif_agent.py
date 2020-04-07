@@ -12,9 +12,9 @@ import re
 import lib.utils.reflection as refl
 import lib.utils.logger as log
 
-import lib.utils.creator as creator
+from lib.utils import creator
 
-class notif_agent:
+class NotifAgent:
     enabled = True
 
     def __init__(self, id, name, module, module_properties):
@@ -69,7 +69,7 @@ def load_agents(directory, agents_file, modules_dir):
         return {}
 
     for c in config:
-        agent = notif_agent(
+        agent = NotifAgent(
                     c.get("id", str(uuid.uuid4())),
                     c.get("name"),
                     c.get("module"),
@@ -305,3 +305,6 @@ def create_notif_agent_choose_module(modules, default=None):
                 return modules_list[module_index]
 
 
+def notif_agents_enabled_check(notif_agents):
+    if len(get_enabled(notif_agents)) == 0:
+        log.warning_print("There are no enabled agents... no notifications will be sent")

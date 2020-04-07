@@ -19,9 +19,7 @@ def get_comments():
 """
 
 def load(file):
-    global _settings
-
-    _settings = _get_defaults()
+#    _settings = _get_defaults()
 
     if not os.path.exists(file):
         with open(file, "w") as stream:
@@ -34,6 +32,7 @@ def load(file):
 def get(key):
     return _settings[key]
 
-if __name__ == "__main__":
-    print(load_settings("settings.yaml").__dict__)
+
+_settings = _get_defaults()
+
 
