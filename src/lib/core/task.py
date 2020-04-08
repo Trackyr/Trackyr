@@ -21,14 +21,22 @@ class Task:
     yaml_tag = None
 
     def __init__(self, **kwargs):
-            self.name = kwargs.get("name", "New Task")
-            self.enabled = kwargs.get("enabled", True)
-            self.frequency = kwargs.get("frequency", 15)
-            self.frequency_unit = kwargs.get("frequency_unit", "minutes")
-            self.source_ids = kwargs.get("source_ids", [])
-            self.notif_agent_ids = kwargs.get("notif_agent_ids", [])
-            self.include = kwargs.get("include", [])
-            self.exclude = kwargs.get("exclude", [])
+        self.name = kwargs.get("name", "New Task")
+        self.enabled = kwargs.get("enabled", True)
+        self.frequency = kwargs.get("frequency", 15)
+        self.frequency_unit = kwargs.get("frequency_unit", "minutes")
+        self.source_ids = kwargs.get("source_ids", [])
+        self.notif_agent_ids = kwargs.get("notif_agent_ids", [])
+        self.include = kwargs.get("include", [])
+        self.exclude = kwargs.get("exclude", [])
+
+    def __repr__(self):
+        return f"""name:{self.name}
+frequency: {self.frequency} {self.frequency_unit}
+source_ids: {self.source_ids}
+notif_agent_ids: {self.notif_agent_ids}
+include: {self.include}
+exclude: {self.exclude}"""
 
     def set_frequency(freq, unit):
         self.frequency = freq
