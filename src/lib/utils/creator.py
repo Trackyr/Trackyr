@@ -1,10 +1,9 @@
-import source_lib as sourcelib
-import scraper_lib as scraper
-import task_lib as tasklib
+import lib.core as core
 
 import uuid
 import re
-import logger_lib as log
+
+import lib.utils.logger as log
 
 def prompt_num(msg, force_positive=True, default=None):
     default_str = ""

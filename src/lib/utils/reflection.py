@@ -5,7 +5,7 @@ import os
 import importlib
 import inspect
 
-import notification_agent_lib as agentlib
+#import notification_agent_lib as agentlib
 
 # gets a class from a dynamically loaded module
 # namespace ensures it gets the class from the module and not an imported module

@@ -6,7 +6,7 @@ import os
 import argparse
 import subprocess
 import re
-import logging
+import lib.utils.logger as log
 
 path = os.getcwd() + "/main.py"
 
@@ -22,18 +22,18 @@ def exists(time, unit):
     return re.search(cron_string, out)
 
 def clear():
-    print ("Clearing crontab...")
+    log.debug("Clearing crontab...")
     os.system(f'crontab -l | grep -v "{path}"  | crontab -')
 
 def add(time, unit):
     if exists(time, unit):
-        logging.info(f"Skipping add cron. Cron entry: '{time}, {unit}' already exists")
+        log.debug(f"Skipping add cron. Cron entry: '{time}, {unit}' already exists")
         return
 
     cron_string = get_cron_line(time, unit)
     os.system(f'(crontab -l; echo "{cron_string}") | crontab -')
 
-    logging.info(f"Added to cron: {cron_string}")
+    log.debug(f"Added to cron: {cron_string}")
 
 def delete(time, unit):
     if not exists(time, unit):
@@ -44,7 +44,7 @@ def delete(time, unit):
     cron_string = get_cron_line(time, unit)
     cron_string = cron_string.replace("*",  "[*]")
     os.system(f'crontab -l | grep -v "{cron_string}"  | crontab -')
-    logging.info(f"Deleted from cron: {cron_string}")
+    log.debug(f"Deleted from cron: {cron_string}")
 
 def convert(time, unit):
     if unit[:1] == "m":

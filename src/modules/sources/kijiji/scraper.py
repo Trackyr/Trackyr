@@ -4,9 +4,10 @@ import  os
 import requests
 from bs4 import BeautifulSoup
 import json
-from scrapers.kijiji.ad import KijijiAd
+
 from pathlib import Path
 import re
+from modules.sources.kijiji.ad import KijijiAd
 
 class KijijiScraper():
     current_directory = os.path.dirname(os.path.realpath(__file__))
@@ -32,7 +33,7 @@ class KijijiScraper():
     def scrape_for_ads(self, old_ad_ids, exclude=[], **kwargs):
         self.new_ads = {}
         self.old_ad_ids = old_ad_ids
-        self.exclude = exclude
+        self.exclude = []
 
         url = kwargs["url"]
         title = None
