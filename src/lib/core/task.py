@@ -6,12 +6,15 @@ import yaml
 import collections
 import subprocess
 import re
+import uuid
 
 import lib.utils.creator as creator
 import lib.utils.cron as cronlib
 
 import lib.utils.logger as log
 
+from lib.core import hooks
+from lib.core import settings
 
 minute="minute"
 hour="hour"
@@ -21,6 +24,7 @@ class Task:
     yaml_tag = None
 
     def __init__(self, **kwargs):
+        self.id = kwargs.get("id", uuid.uuid4())
         self.name = kwargs.get("name", "New Task")
         self.enabled = kwargs.get("enabled", True)
         self.frequency = kwargs.get("frequency", 15)
@@ -85,7 +89,16 @@ def list_tasks(tasks):
         print_task(t)
         i = i+1
 
-def save(tasks, file, preserve_comments=True):
+def save(*args, **kwargs):
+    if (settings.get("data_mode") == settings.DATA_MODE_DB):
+        save_db(args[0], **kwargs)
+    elif (settings.get("data_mode") == settings.DATA_MODE_YAML):
+        save_yaml(args[0], args[1], **kwargs)
+
+def save_db(tasks):
+    hooks.save_to_db(tasks)
+
+def save_yaml(tasks, file, preserve_comments=True):
     if preserve_comments:
         # preserve comments in file
         with open(file, "r") as stream:
@@ -142,6 +155,7 @@ def task_creator(cur_tasks, sources, notif_agents, file, edit_task=None):
         if edit_task:
             e = edit_task
             old_task_name = e.name
+            t["id"] = e.id
             t["name"] = e.name
             t["freq"] = e.frequency
             t["frequ"] = e.frequency_unit
@@ -160,12 +174,14 @@ def task_creator(cur_tasks, sources, notif_agents, file, edit_task=None):
             t["notif_agents"] = e.notif_agent_ids
 
         while True:
+#            t["id"] = creator.prompt_id(creator.get_id_list(cur_tasks))
+            t["id"] = creator.create_simple_id(list(cur_tasks))
             t["name"] = creator.prompt_string("Name", default=t.get("name", None))
             t["freq"] = creator.prompt_num("Frequency", default=t.get("freq", 15))
             t["frequ"] = creator.prompt_options("Frequency Unit", ["minutes", "hours"], default=t.get("frequ", "minutes"))
             t["sources"] = create_task_add_sources(sources, default=t.get("sources", None))
             t["include"] = creator.prompt_string("Include [list seperated by commas]", allow_empty=True, default=t.get("include", None))
-            t["exclude"] = creator.prompt_string("exclude [list seperated by commas]", allow_empty=True, default=t.get("exclude", None))
+            t["exclude"] = creator.prompt_string("Exclude [list seperated by commas]", allow_empty=True, default=t.get("exclude", None))
             t["notif_agents"] = create_task_add_notif_agents(notif_agents, default=t.get("notif_agents", None))
 
             print()
@@ -180,12 +196,13 @@ def task_creator(cur_tasks, sources, notif_agents, file, edit_task=None):
             print(f"Exclude: {t['exclude']}")
 
             task = Task(
+                id = t["id"],
                 name = t["name"],
                 frequency = t["freq"],
-                 frequency_unit = t["frequ"],
+                frequency_unit = t["frequ"],
                 source_ids = t["sources"],
                 include = t["include"].split(","),
-                exclude = t["include"].split(","),
+                exclude = t["exclude"].split(","),
                 notif_agent_ids = t["notif_agents"]
             )
 
@@ -213,16 +230,16 @@ def task_creator(cur_tasks, sources, notif_agents, file, edit_task=None):
 
 
         if edit_task is None:
-            cur_tasks.append(task)
-
+            cur_tasks[task.id] = task
         else:
             e = edit_task
+            e.id = t["id"]
             e.name = t["name"]
             e.frequency = t["freq"]
             e.frequency_unit = t["frequ"]
             e.source_ids = t["sources"]
             e.include = t["include"].split(",")
-            e.exclude = t["include"].split(",")
+            e.exclude = t["exclude"].split(",")
             e.notif_agent_ids = t["notif_agents"]
             task = edit_task
 
@@ -259,6 +276,9 @@ def task_creator(cur_tasks, sources, notif_agents, file, edit_task=None):
 
 def create_task_add_sources(sources_dict, default=None):
     default_str = ""
+    if default is None and len(sources_dict) == 1:
+        default = [list(sources_dict)[0]]
+
     if default is not None:
         first = True
         for s in default:
@@ -321,6 +341,8 @@ def create_task_add_sources(sources_dict, default=None):
             if source_index >= 0 and source_index < len(sources_list):
                 add_sources.append(remaining_sources[source_index])
                 del(remaining_sources[source_index])
+                if len(remaining_sources) == 0:
+                    break
 
                 confirm = creator.yes_no("Add another?", "y")
                 if confirm == "n":
@@ -334,6 +356,9 @@ def create_task_add_sources(sources_dict, default=None):
 
 def create_task_add_notif_agents(notif_agents_dict, default=None):
     default_str = ""
+    if default is None and len(notif_agents_dict) == 1:
+        default = [list(notif_agents_dict)[0]]
+
     if default is not None:
         first = True
         for s in default:
@@ -396,6 +421,8 @@ def create_task_add_notif_agents(notif_agents_dict, default=None):
             if notif_agent_index >= 0 and notif_agent_index < len(notif_agents_list):
                 add_notif_agents.append(remaining_notif_agents[notif_agent_index])
                 del(remaining_notif_agents[notif_agent_index])
+                if len(remaining_notif_agents) == 0:
+                    break
 
                 confirm = creator.yes_no("Add another?", "y")
                 if confirm == "n":
@@ -427,9 +454,12 @@ def edit_task(cur_tasks, sources, notif_agents, file):
     else:
         task_creator(cur_tasks, sources, notif_agents, file, task)
 
-def delete_task(tasks_list, file):
+def delete_task(tasks, file):
     creator.print_title("Delete Task")
+
     while True:
+        tasks_list = list(tasks.values())
+
         for i in range(len(tasks_list)):
             print(f"{i} - {tasks_list[i].name}")
 
@@ -437,14 +467,28 @@ def delete_task(tasks_list, file):
         print("q - quit without saving")
         tnum_str = creator.prompt_string("Delete task")
         if tnum_str == "s":
-            save(tasks_list, file)
+            save(tasks, file)
             return
         elif tnum_str == "q":
             return
 
         if re.match("[0-9]+$", tnum_str):
             tnum = int(tnum_str)
-            if tnum >= 0 and tnum < len(tasks_list):
+            if tnum >= 0 and tnum < len(tasks):
                 if creator.yes_no(f"Are you sure you want to delete {tasks_list[tnum].name}") == "y":
-                    del tasks_list[tnum]
+                    do_delete_task(tasks_list[tnum].id, tasks)
+
+def do_delete_task(*args, **kwargs):
+    if (settings.get("data_mode") == settings.DATA_MODE_DB):
+        do_delete_task_db(args[0], args[1])
+    elif (settings.get("data_mode") == settings.DATA_MODE_YAML):
+        do_delete_task_yaml(args[0], args[1])
+
+def do_delete_task_db(id, tasks):
+    hooks.delete_task_model(tasks[id])
+
+    del tasks[id]
+
+def do_delete_task_yaml(id, tasks):
+    del tasks[id]
 

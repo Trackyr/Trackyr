@@ -1,12 +1,16 @@
 import os
 import yaml
 
+DATA_MODE_YAML = "YAML"
+DATA_MODE_DB = "DB"
+
 def _get_defaults():
     s = {}
     s["gobal_include"] = []
     s["gobal_exclude"] = []
     s["recent_ads"] = 0
     s["log_rotation_files"] = 5
+    s["data_mode"] = DATA_MODE_DB
     return s
 
 def get_comments():
@@ -20,7 +24,6 @@ def get_comments():
 
 def load(file):
 #    _settings = _get_defaults()
-
     if not os.path.exists(file):
         with open(file, "w") as stream:
             stream.write(get_comments())

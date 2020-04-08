@@ -42,20 +42,18 @@ if not os.path.exists(ads_file):
 with open(ads_file, "r") as stream:
     ads = yaml.safe_load(stream)
 
-"""
-tasks = task.load_tasks(tasks_file)
-sources = source.load_sources(sources_file)
-agents = notif_agent.load_agents(current_directory, notif_agents_file, notif_agent_modules_dir)
-"""
-tasks = hooks.load_core_tasks()
-sources = hooks.load_core_sources()
-agents = hooks.load_core_notif_agents()
-scrapers = source.load_modules(current_directory, "modules/sources")
-notif_agent_modules = notif_agent.load_modules(current_directory, notif_agent_modules_dir)
+if settings.get("data_mode") == settings.DATA_MODE_YAML:
+    tasks = task.load_tasks(tasks_file)
+    sources = source.load_sources(sources_file)
+    agents = notif_agent.load_agents(current_directory, notif_agents_file, notif_agent_modules_dir)
 
-print (tasks)
-print (sources)
-print (agents)
+elif settings.get("data_mode") == settings.DATA_MODE_DB:
+    tasks = hooks.load_core_tasks()
+    sources = hooks.load_core_sources()
+    agents = hooks.load_core_notif_agents()
+    scrapers = source.load_modules(current_directory, "modules/sources")
+    notif_agent_modules = notif_agent.load_modules(current_directory, notif_agent_modules_dir)
+
 # force - run task regardless if it is enabled or not
 # recent_ads - only show the latest N ads, set to 0 to disable
 def run_task(task, notify=True, force_tasks=False, force_agents=False, recent_ads=0, save_ads=True):
@@ -161,7 +159,8 @@ def cron(cron_time, cron_unit, notify=True, force_tasks=False, force_agents=Fals
     log.info_print(f"Running cronjob for schedule: {cron_time} {cron_unit}")
 
     # Scrape each url given in tasks file
-    for task in tasks:
+    for t in tasks:
+        task = tasks[t]
         freq = task.frequency
         freq_unit = task.frequency_unit
 

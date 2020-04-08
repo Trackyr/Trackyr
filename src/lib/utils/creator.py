@@ -124,7 +124,7 @@ def yes_no(msg, default=None, ending="?"):
 
 def prompt_id(id_list, max_tries=10000, default=None):
     while True:
-        simple_default = "n"
+        simple_default = "y"
 
         if default is not None:
             if isinstance(default, int):
@@ -139,16 +139,7 @@ def prompt_id(id_list, max_tries=10000, default=None):
             break
 
         if simple_id == "y":
-            i = 0
-            while i < max_tries:
-                if not i in id_list:
-                    break;
-                i = i + 1
-
-            if i >= max_tries:
-                raise ValueError(f"For some reason max tries of {max_tries} was reached...")
-
-            id = i
+            id = create_simple_id(id_list)
             break
 
         elif simple_id == "n":
@@ -157,6 +148,18 @@ def prompt_id(id_list, max_tries=10000, default=None):
 
     print (f"Id: {id}")
     return id
+
+def create_simple_id(id_list, max_tries=10000):
+    i = 0
+    while i < max_tries:
+        if not i in id_list:
+            break;
+        i = i + 1
+
+    if i >= max_tries:
+        raise ValueError(f"For some reason max tries of {max_tries} was reached...")
+
+    return i
 
 def get_id_list(dict_source):
     ids = []
