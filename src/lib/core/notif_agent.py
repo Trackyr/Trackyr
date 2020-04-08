@@ -9,6 +9,8 @@ import inspect
 import uuid
 import re
 
+from lib.core import settings
+from lib.core import hooks
 import lib.utils.reflection as refl
 import lib.utils.logger as log
 
@@ -119,7 +121,16 @@ def noop(self, *args, **kw):
 
 yaml.emitter.Emitter.process_tag = noop
 
-def save(notif_agents, file, preserve_comments=False):
+def save(*args, **kwargs):
+    if (settings.get("data_mode") == settings.DATA_MODE_DB):
+        save_db(args[0], **kwargs)
+    elif (settings.get("data_mode") == settings.DATA_MODE_YAML):
+        save_yaml(args[0], args[1], **kwargs)
+
+def save_db(sources):
+    hooks.save_to_db(sources)
+
+def save_yaml(notif_agents, file, preserve_comments=False):
     if isinstance(notif_agents, dict):
         old_notif_agents = notif_agents
         notif_agents = []
@@ -157,7 +168,8 @@ def notif_agent_creator(cur_notif_agents, modules, file, edit_notif_agent=None):
 
 
     while True:
-        n["id"] = creator.prompt_id(creator.get_id_list(cur_notif_agents), default = n.get("id", None))
+#        n["id"] = creator.prompt_id(creator.get_id_list(cur_notif_agents), default = n.get("id", None))
+        n["id"] = creator.create_simple_id(list(cur_notif_agents))
         n["name"] = creator.prompt_string("Name", default=n.get("name", None))
 
         n["module"] = create_notif_agent_choose_module(modules, default=n.get("module", None))
@@ -207,7 +219,7 @@ def notif_agent_creator(cur_notif_agents, modules, file, edit_notif_agent=None):
         set_props[p] = n[f"prop_{p}"]
 
     if edit_notif_agent is None:
-        save_notif_agent = notif_agent(
+        save_notif_agent = NotifAgent(
             id=n["id"],
             name=n["name"],
             module=n["module"],
@@ -281,6 +293,10 @@ def do_delete_notif_agent(id, notif_agents_dict, tasks_list):
 
 def create_notif_agent_choose_module(modules, default=None):
     default_str = ""
+
+    if default is None and len(modules) == 1:
+        default = list(modules)[0]
+
     if default is not None:
         default_str = f" [{default}]"
 

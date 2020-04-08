@@ -120,11 +120,11 @@ def main():
 
 def notif_agent_cmd(args):
     if args.notif_agent_cmd == "add":
-        core.notif_agent.create_notif_agent(core.agents, core.notif_agent.load_modules(current_directory, notif_agent_modules_dir), notif_agents_file)
+        core.notif_agent.create_notif_agent(core.agents, core.notif_agent_modules, core.notif_agents_file)
     elif args.notif_agent_cmd == "edit":
-        core.notif_agent.edit_notif_agent(core.agents, core.notif_agent.load_modules(current_directory, notif_agent_modules_dir), notif_agents_file)
+        core.notif_agent.edit_notif_agent(core.agents, core.notif_agent_modules, core.notif_agents_file)
     elif args.notif_agent_cmd == "delete":
-        core.notif_agent.delete_notif_agent(core.agents, notif_agents_file, core.tasks, core.tasks_file)
+        core.notif_agent.delete_notif_agent(core.agents, core.notif_agents_file, core.tasks, core.tasks_file)
 
 def source_cmd(args):
     if args.source_cmd == "add":
