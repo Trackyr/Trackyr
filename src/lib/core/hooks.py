@@ -35,7 +35,6 @@ def to_new_core_task(task_model):
 
 def to_new_task_model(core_task):
     c = core_task
-
     m = models.Task()
 
     m.name = c.name
@@ -68,8 +67,13 @@ def delete_task_model(core_task):
     session.delete(task_model)
 
 def to_new_core_notif_agent(notif_agent_model):
-    n = deepcopy(notif_agent_model)
-    n.module_properties = {
+    n = notif_agent_model
+
+    module = 0
+    if n.module == 1:
+        module = "discord"
+
+    module_properties = {
         "webhook": n.webhook_url,
         "botname": n.username
     }
@@ -77,32 +81,86 @@ def to_new_core_notif_agent(notif_agent_model):
     return core.NotifAgent(
                 id = n.id,
                 name = n.name,
-                module = n.module,
-                module_properties = n.module_properties,
+                module = module,
+                module_properties = module_properties,
             )
 
-def to_new_core_source(source_model):
-    s = deepcopy(source_model)
+def to_new_notif_agent_model(core_notif_agent):
+    c = core_notif_agent
 
-    s.module_properties = {
+    module = 0
+    if c.module == "discord":
+        module = 1
+
+    m = models.NotificationAgent()
+    m.id = c.id
+    m.name = c.name
+    m.module = module
+    m.webhook_url = c.module_properties["webhook"]
+    m.username = c.module_properties["botname"]
+    m.icon = ""
+    m.channel = ""
+
+    return m
+
+def to_existing_notif_agent_model(core_notif_agent, notif_agent_model):
+    c = core_notif_agent
+
+    module = 0
+    if c.module == "discord":
+        module = 1
+
+    m = notif_agent_model
+    m.id = c.id
+    m.name = c.name
+    m.module = module
+    m.webhook_url = c.module_properties["webhook"]
+    m.username = c.module_properties["botname"]
+
+def to_new_core_source(source_model):
+    s = source_model
+
+    module = 0
+    if s.module == 1:
+        module = "kijiji"
+
+    module_properties = {
         "url": s.website
     }
 
     return core.Source(
                 id = s.id,
                 name = s.name,
-                module = s.module,
-                module_properties = s.module_properties
+                module = module,
+                module_properties = module_properties
             )
 
-def to_task_model(core_task):
-    pass
+def to_new_source_model(core_source):
+    c = core_source
 
-def to_source_model(core_source):
-    pass
+    module = 0
+    if c.module == "kijiji":
+        module = 1
 
-def to_notif_agent_model(core_notif_agent):
-    pass
+    m = models.Source()
+    m.id = c.id
+    m.name = c.name
+    m.module = c.module
+    m.website = c.module_properties["url"]
+    return m
+
+def to_existing_source_model(core_source, source_model):
+    c = core_source
+    m = source_model
+
+    module = 0
+    if c.module == "kijiji":
+        module = 1
+
+    m.id = c.id
+    m.name = c.name
+    m.module = module
+    m.website = c.module_properties["url"]
 
 def load_core_tasks():
     task_models = session.query(models.Task).all()
@@ -131,15 +189,35 @@ def load_core_notif_agents():
 
     return notif_agents
 
-def save_to_db(core_tasks):
-    for id in core_tasks:
+def save_to_db(tosave):
+    to_model_type = {
+        core.Task: models.Task,
+        core.Source: models.Source,
+        core.NotifAgent: models.NotificationAgent
+    }
 
-        found = session.query(models.Task).get(id)
+    to_new_model = {
+        core.Task: to_new_task_model,
+        core.Source: to_new_source_model,
+        core.NotifAgent: to_new_notif_agent_model
+    }
+
+    to_existing_model = {
+        core.Task: to_existing_task_model,
+        core.Source: to_existing_source_model,
+        core.NotifAgent: to_existing_notif_agent_model
+    }
+
+
+    for id in tosave:
+        core_type = type(tosave[id])
+        model = to_model_type[core_type]
+        found = session.query(model).get(id)
         if found is not None:
-            to_existing_task_model(core_tasks[id], found)
+            to_existing_model[core_type](tosave[id], found)
 
         else:
-            task_model = to_new_task_model(core_tasks[id])
+            task_model = to_new_model[core_type](tosave[id])
             session.add(task_model)
 
     session.commit()

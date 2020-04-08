@@ -9,6 +9,8 @@ import uuid
 
 from importlib import util, machinery
 import inspect
+
+from . import settings, hooks
 import lib.utils.creator as creator
 import lib.utils.reflection as refl
 
@@ -97,7 +99,16 @@ def list_sources(sources):
         print_source(t)
         i = i+1
 
-def save(sources, file, preserve_comments=True):
+def save(*args, **kwargs):
+    if (settings.get("data_mode") == settings.DATA_MODE_DB):
+        save_db(args[0], **kwargs)
+    elif (settings.get("data_mode") == settings.DATA_MODE_YAML):
+        save_yaml(args[0], args[1], **kwargs)
+
+def save_db(sources):
+    hooks.save_to_db(sources)
+
+def save_yaml(sources, file, preserve_comments=True):
     if isinstance(sources, dict):
         old_sources = sources
         sources = []
@@ -167,7 +178,8 @@ def source_creator(cur_sources, scrapers, file, edit_source=None):
             s[f"prop_{p}"] = e.module_properties[p]
 
     while True:
-        s["id"] = creator.prompt_id(creator.get_id_list(cur_sources), default = s.get("id", None))
+#        s["id"] = creator.prompt_id(creator.get_id_list(cur_sources), default = s.get("id", None))
+        s["id"] = creator.create_simple_id(list(cur_sources))
         s["name"] = creator.prompt_string("Name", default=s.get("name", None))
         s["module"] = create_source_choose_module(scrapers, s.get("module", None))
         scraper = scrapers[s["module"]]
@@ -218,6 +230,10 @@ def source_creator(cur_sources, scrapers, file, edit_source=None):
 
 def create_source_choose_module(scrapers, default=None):
     default_str = ""
+
+    if default is None and len(scrapers) == 1:
+        default = list(scrapers)[0]
+
     if default is not None:
         default_str = f" [{default}]"
 
