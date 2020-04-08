@@ -1,6 +1,6 @@
 #!/bin/usr/env python3
 import discord
-import logger_lib as log
+import lib.utils.logger as log
 
 class DiscordClient():
 

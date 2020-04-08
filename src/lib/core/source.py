@@ -1,14 +1,26 @@
-"""
-
-"""
+#!/usr/bin/env python3
 import os
+import sys
 import yaml
 import collections
 import subprocess
 import re
 import uuid
 
-from . import creator_utils_lib as creator
+from importlib import util, machinery
+import inspect
+import lib.utils.creator as creator
+import lib.utils.reflection as refl
+
+class BaseScraper():
+    def get_properties():
+        pass
+
+    def set_properties(props):
+        valid_props = get_properties()
+        for p in props:
+            if not p in valid_props:
+                raise ValueError(f"Invalid module property '{p}'")
 
 class Source:
     def __init__(self, **kwargs):
@@ -24,7 +36,7 @@ class Source:
 
         return Source(**data)
 
-def load(file):
+def load_sources(file):
     if not os.path.exists(file):
         open(file, "w+")
 
@@ -38,6 +50,35 @@ def load(file):
             sources[source.id] = source
 
     return sources
+
+# looks for sub diretories inside "scrapers/"
+# and inspects its contents for a "scraper.py" file and grabs the class inside that file
+# PARAMS: scraper_ads - json of all the previously scraped files
+# RETURNS: a dictionary {scraper_name : scraper_instance} 
+def load_modules(directory, scraper_dir):
+    result = {}
+    filename = "scraper.py"
+
+    subdirs = refl.get_directories(f"{directory}/{scraper_dir}")
+    for subdir in subdirs:
+        scraper_name = subdir
+        path = f"{directory}/{scraper_dir}/{subdir}/{filename}"
+        if not os.path.exists(path):
+            continue
+
+        namespace = refl.path_to_namespace(f"{scraper_dir}/{subdir}/{filename}")
+        finder = machinery.PathFinder()
+        spec = util.find_spec(f"{namespace}")
+        #spec = machinery.find_spec(f"{path}")
+        module = util.module_from_spec(spec)
+#        sys.modules[module_name] = module
+        spec.loader.exec_module(module)
+
+#        module = refl.get_module(namespace)
+        module_class_name, module_class = refl.get_class(module, namespace)
+        result[subdir] = module_class()
+
+    return result
 
 def list_sources_in_file(file):
     list_sources(load_sources(file))
@@ -152,7 +193,7 @@ def source_creator(cur_sources, scrapers, file, edit_source=None):
         set_props[p] = s[f"prop_{p}"]
 
     if edit_source is None:
-        source = sourcelib.Source(
+        source = Source(
             id=s["id"],
             name=s["name"],
             module=s["module"],

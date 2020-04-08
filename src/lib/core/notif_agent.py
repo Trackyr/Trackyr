@@ -3,17 +3,18 @@
 import yaml
 import sys
 import os
-import importlib
+from importlib import util, machinery
 #import json
 import inspect
-import lib.reflection_lib as refl
-import lib.logger_lib as log
 import uuid
 import re
 
-import lib.creator_utils_lib as creator
+import lib.utils.reflection as refl
+import lib.utils.logger as log
 
-class notif_agent:
+from lib.utils import creator
+
+class NotifAgent:
     enabled = True
 
     def __init__(self, id, name, module, module_properties):
@@ -26,7 +27,7 @@ class notif_agent:
 # and inspects its contents for a "agent.py" file and grabs the class inside that file
 # uses config files inside of  {directory}/{agent_dir}/config.yaml
 # RETURNS: a dictionary {agent_name : agent_instance}
-def get_modules(directory, agent_dir):
+def load_modules(directory, agent_dir):
     result = {}
     filename = "agent.py"
     config_file = "config.yaml"
@@ -41,10 +42,10 @@ def get_modules(directory, agent_dir):
             continue
 
         namespace = refl.path_to_namespace(f"{agent_dir}/{subdir}/{filename}")
-        finder = importlib.machinery.PathFinder()
-        spec = importlib.util.find_spec(f"{namespace}")
-        #spec = importlib.machinery.find_spec(f"{path}")
-        module = importlib.util.module_from_spec(spec)
+        finder = machinery.PathFinder()
+        spec = util.find_spec(f"{namespace}")
+        #spec = machinery.find_spec(f"{path}")
+        module = util.module_from_spec(spec)
 #        sys.modules[module_name] = module
         spec.loader.exec_module(module)
 
@@ -55,8 +56,7 @@ def get_modules(directory, agent_dir):
 
     return result
 
-def get_agents(directory, agents_file, modules_dir):
-    modules = get_modules(directory, modules_dir)
+def load_agents(directory, agents_file, modules_dir):
     result = {}
 
     if not os.path.exists(agents_file):
@@ -69,7 +69,7 @@ def get_agents(directory, agents_file, modules_dir):
         return {}
 
     for c in config:
-        agent = notif_agent(
+        agent = NotifAgent(
                     c.get("id", str(uuid.uuid4())),
                     c.get("name"),
                     c.get("module"),
@@ -84,10 +84,8 @@ def get_agents(directory, agents_file, modules_dir):
     return result
 
 def get_notif_agents_by_ids(notif_agents, ids):
-    print (ids)
     result = []
     for id in ids:
-        print (f"{id}: enabled: {notif_agents[id].enabled}")
         result.append(notif_agents[id])
 
     return result
@@ -276,7 +274,6 @@ def do_delete_notif_agent(id, notif_agents_dict, tasks_list):
     del notif_agents_dict[id]
 
 def create_notif_agent_choose_module(modules, default=None):
-    print (modules)
     default_str = ""
     if default is not None:
         default_str = f" [{default}]"
@@ -308,3 +305,6 @@ def create_notif_agent_choose_module(modules, default=None):
                 return modules_list[module_index]
 
 
+def notif_agents_enabled_check(notif_agents):
+    if len(get_enabled(notif_agents)) == 0:
+        log.warning_print("There are no enabled agents... no notifications will be sent")
