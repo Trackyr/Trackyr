@@ -77,19 +77,22 @@ def main():
 
     # task {name} {frequency} {frequency_unit}
     task_sub = main_subparsers.add_parser("task")
-    task_subparsers = task_sub.add_subparsers(dest="task_cmd", required=True)
+    task_subparsers = task_sub.add_subparsers(dest="task_cmd")
+    task_subparsers.required = True
     task_add = task_subparsers.add_parser("add", help="Add a new task")
     task_delete = task_subparsers.add_parser("delete", help="Delete an existing task")
     task_edit = task_subparsers.add_parser("edit", help="Edit an existing task")
 
     source_sub = main_subparsers.add_parser("source")
-    source_subparsers = source_sub.add_subparsers(dest="source_cmd", required=True)
+    source_subparsers = source_sub.add_subparsers(dest="source_cmd")
+    source_subparsers.required = True
     source_add = source_subparsers.add_parser("add", help="Add a new source")
     source_delete = source_subparsers.add_parser("delete", help="Delete an existing source")
     source_edit = source_subparsers.add_parser("edit", help="Edit an existing source")
 
     notif_agent_sub = main_subparsers.add_parser("notification-agent")
-    notif_agent_subparsers = notif_agent_sub.add_subparsers(dest="notif_agent_cmd", required=True)
+    notif_agent_subparsers = notif_agent_sub.add_subparsers(dest="notif_agent_cmd")
+    notif_agent_subparsers.required = True
     notif_agent_add = notif_agent_subparsers.add_parser("add", help="Add a new notif_agent")
     notif_agent_add = notif_agent_subparsers.add_parser("delete", help="Delete a new notif_agent")
     notif_agent_add = notif_agent_subparsers.add_parser("edit", help="Edit a new notif_agent")

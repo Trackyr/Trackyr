@@ -1,4 +1,4 @@
-import lib.core as core
+from lib import core
 
 import uuid
 import re

@@ -145,7 +145,7 @@ def to_new_source_model(core_source):
     m = models.Source()
     m.id = c.id
     m.name = c.name
-    m.module = c.module
+    m.module = module
     m.website = c.module_properties["url"]
     return m
 
