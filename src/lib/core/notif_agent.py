@@ -23,6 +23,12 @@ class NotifAgent:
         self.module = module
         self.module_properties = module_properties
 
+    def __repr__(self):
+        return f"""id: {self.id}
+name:{self.name}
+module: {self.module}
+module_properties: {self.module_properties}"""
+
 # looks for sub diretories inside "{directory}"
 # and inspects its contents for a "agent.py" file and grabs the class inside that file
 # uses config files inside of  {directory}/{agent_dir}/config.yaml

@@ -29,6 +29,13 @@ class Source:
 #        self.url = kwargs.get("url", "")
         self.module = kwargs.get("module")
         self.module_properties = kwargs.get("module_properties")
+
+    def __repr__(self):
+        return f"""id: {self.id}
+name:{self.name}
+module: {self.module}
+module_properties: {self.module_properties}"""
+
     @staticmethod
     def load(data):
         values = data

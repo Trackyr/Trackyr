@@ -11,12 +11,10 @@ import os
 #import argparse
 
 current_directory = os.getcwd()
-print ("SYS PATH::::::: " + os.getcwd())
-print ("!!!!!!!!" + current_directory)
-
 # import settings file first so other modules can use settings
 
 from . import settings
+from . import hooks
 
 settings_file = current_directory + "/settings.yaml"
 settings.load(settings_file)
@@ -44,11 +42,20 @@ if not os.path.exists(ads_file):
 with open(ads_file, "r") as stream:
     ads = yaml.safe_load(stream)
 
+"""
 tasks = task.load_tasks(tasks_file)
 sources = source.load_sources(sources_file)
-scrapers = source.load_modules(current_directory, "modules/sources")
 agents = notif_agent.load_agents(current_directory, notif_agents_file, notif_agent_modules_dir)
+"""
+tasks = hooks.load_core_tasks()
+sources = hooks.load_core_sources()
+agents = hooks.load_core_notif_agents()
+scrapers = source.load_modules(current_directory, "modules/sources")
 notif_agent_modules = notif_agent.load_modules(current_directory, notif_agent_modules_dir)
+
+print (tasks)
+print (sources)
+print (agents)
 # force - run task regardless if it is enabled or not
 # recent_ads - only show the latest N ads, set to 0 to disable
 def run_task(task, notify=True, force_tasks=False, force_agents=False, recent_ads=0, save_ads=True):
