@@ -199,41 +199,45 @@ def notif_agent_creator(cur_notif_agents, modules, file, edit_notif_agent=None):
 #        print("}")
         print ("-----------------------------")
 
-        """
-        if edit_notif_agent is None:
-            confirm_msg = "Create this notif_agent?"
-        else:
-            confirm_msg = f"Apply changes to notification agent '{old_name}'"
-        """
+        set_props = {}
+        for p in props:
+            set_props[p] = n[f"prop_{p}"]
 
-        confirm = creator.prompt_options("Choose an option", ["save","edit","quit"])
+        if edit_notif_agent is None:
+            save_notif_agent = NotifAgent(
+                id=n["id"],
+                name=n["name"],
+                module=n["module"],
+                module_properties=set_props
+            )
+        else:
+            edit_notif_agent.id = n["id"]
+            edit_notif_agent.name = n["name"]
+            edit_notif_agent.module = n["module"]
+            edit_notif_agent.module_properties=set_props
+            save_notif_agent = edit_notif_agent
+
+        confirm = creator.prompt_options("Choose an option", ["save","edit","test","quit"])
         if confirm == "save":
             break
         elif confirm == "edit":
             continue
+        elif confirm == "test":
+            test_notif_agent(save_notif_agent, modules)
+            continue
         elif confirm == "quit":
             return
 
-    set_props = {}
-    for p in props:
-        set_props[p] = n[f"prop_{p}"]
-
-    if edit_notif_agent is None:
-        save_notif_agent = NotifAgent(
-            id=n["id"],
-            name=n["name"],
-            module=n["module"],
-            module_properties=set_props
-        )
-    else:
-        edit_notif_agent.id = n["id"]
-        edit_notif_agent.name = n["name"]
-        edit_notif_agent.module = n["module"]
-        edit_notif_agent.module_properties=set_props
-        save_notif_agent = edit_notif_agent
-
     cur_notif_agents[n["id"]] = save_notif_agent
     save(cur_notif_agents, file)
+
+def test_notif_agent(notif_agent, modules):
+    module = modules[notif_agent.module]
+    module.send(
+        title = f"Testing '{notif_agent.name}'",
+        message = "This is a test message",
+        **notif_agent.module_properties
+    )
 
 def create_notif_agent(cur_notif_agents, modules, file, edit_notif_agent=None):
     creator.print_title("Add Notification Agent")

@@ -3,7 +3,6 @@ import discord
 import lib.utils.logger as log
 
 class DiscordClient():
-
     def get_properties(self):
         return ["webhook", "botname"]
 
@@ -23,6 +22,23 @@ class DiscordClient():
             raise ValueError(f"Invalid property: {key}")
 
         return False
+
+    def send(self, title, message, **kwargs):
+        global webhook_cache
+
+        if not "webhook_cache" in globals():
+            webhook_cache = {}
+
+        webhook_url = kwargs["webhook"]
+        self.bot_name = kwargs["botname"]
+
+        if not webhook_url in webhook_cache:
+            webhook_cache[webhook_url] = discord.Webhook.from_url(webhook_url, adapter=discord.RequestsWebhookAdapter())
+
+        self.webhook = webhook_cache[webhook_url]
+
+        self.webhook.send(content=f"**{title}**", username=self.bot_name)
+        self.webhook.send(content=message, username=self.bot_name)
 
     # Sends a Discord message with links and info of new ads
     def send_ads(self, ad_dict, discord_title, **kwargs):

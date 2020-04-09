@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!usr/bin/env python3
 import os
 import sys
 import yaml
@@ -11,6 +11,7 @@ from importlib import util, machinery
 import inspect
 
 from . import settings, hooks
+from lib import core
 import lib.utils.creator as creator
 import lib.utils.reflection as refl
 
@@ -167,7 +168,7 @@ if __name__ == "__main__":
     t = load_sources("sources.yaml")
     save_sources(t, "sources.yaml", "sources.yaml")
 
-def source_creator(cur_sources, scrapers, file, edit_source=None):
+def source_creator(cur_sources, modules, file, edit_source=None):
     s = {}
     if edit_source is not None:
         e = edit_source
@@ -181,9 +182,9 @@ def source_creator(cur_sources, scrapers, file, edit_source=None):
 #        s["id"] = creator.prompt_id(creator.get_id_list(cur_sources), default = s.get("id", None))
         s["id"] = creator.create_simple_id(list(cur_sources))
         s["name"] = creator.prompt_string("Name", default=s.get("name", None))
-        s["module"] = create_source_choose_module(scrapers, s.get("module", None))
-        scraper = scrapers[s["module"]]
-        props = scraper.get_properties()
+        s["module"] = create_source_choose_module(modules, s.get("module", None))
+        module = modules[s["module"]]
+        props = module.get_properties()
         print("Module Properties")
         for p in props:
             s[f"prop_{p}"] = creator.prompt_string(f"{p}", default=s.get(f"prop_{p}", None))
@@ -199,7 +200,34 @@ def source_creator(cur_sources, scrapers, file, edit_source=None):
 #        print("}")
         print ("-----------------------------")
 
-        confirm = creator.prompt_options("Choose an option", ["save","edit","quit"])
+        set_props = {}
+        for p in props:
+            set_props[p] = s[f"prop_{p}"]
+
+        if edit_source is None:
+            source = Source(
+                id=s["id"],
+                name=s["name"],
+                module=s["module"],
+                module_properties=set_props
+            )
+
+        else:
+            edit_source.id = s["id"]
+            edit_source.name = s["name"]
+            edit_source.module = s["module"]
+            edit_source.module_properties = set_props
+            source = edit_source
+
+        while True:
+            confirm = creator.prompt_options("Choose an option", ["save","edit","test","quit"])
+            if confirm == "test":
+                test_source(source, modules)
+                continue
+
+            else:
+                break
+
         if confirm == "save":
             break
         elif confirm == "edit":
@@ -207,26 +235,28 @@ def source_creator(cur_sources, scrapers, file, edit_source=None):
         elif confirm == "quit":
             return
 
-    set_props = {}
-    for p in props:
-        set_props[p] = s[f"prop_{p}"]
-
-    if edit_source is None:
-        source = Source(
-            id=s["id"],
-            name=s["name"],
-            module=s["module"],
-            module_properties=set_props
-        )
-    else:
-        edit_source.id = s["id"]
-        edit_source.name = s["name"]
-        edit_source.module = s["module"]
-        edit_source.module_properties = set_props
-        source = edit_source
-
     cur_sources[s["id"]] = source
     save(cur_sources, file)
+
+def test_source(source, modules):
+    include = []
+    exclude = []
+
+    if creator.yes_no("Would you like to add inlcudes/excludes", "n") == "y":
+        include = creator.prompt_string("Include", allow_empty=True)
+        exclude = creator.prompt_string("Exclude", allow_empty=True)
+
+    module = modules[source.module]
+
+    core.scrape_source(
+            source,
+            [],
+            include=include,
+            exclude=exclude,
+            notify=False,
+            save_ads=False
+        )
+
 
 def create_source_choose_module(scrapers, default=None):
     default_str = ""
