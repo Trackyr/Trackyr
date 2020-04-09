@@ -1,3 +1,4 @@
+# so that you can call core.Task instead of core.task.Task
 from .task import Task
 from .notif_agent import NotifAgent
 from .source import Source
@@ -5,42 +6,40 @@ from .source import Source
 import yaml
 import sys
 import os
-#import importlib
-#import json
-#import inspect
-#import argparse
+import importlib
 
 current_directory = os.getcwd()
-# import settings file first so other modules can use settings
 
 from . import settings
-from . import hooks
-
 settings_file = current_directory + "/settings.yaml"
 settings.load(settings_file)
 
 from lib.utils import logger as log
-
 log.load(current_directory + "/logs/", settings.get("log_rotation_files"))
 
+from . import hooks
+
 ads_file = f"{current_directory}/ads.json"
-tasks_file = f"{current_directory}/tasks.yaml"
-sources_file = f"{current_directory}/sources.yaml"
-notif_agents_file = f"notification_agents.yaml"
-notif_agent_modules_dir = "modules/notif_agents"
-scrapers_dir = "scrapers"
-
-scrapers = {}
-sources = {}
-agents = {}
-ads = {}
-
 if not os.path.exists(ads_file):
     with open(ads_file, "w") as stream:
         stream.write("{}")
 
 with open(ads_file, "r") as stream:
     ads = yaml.safe_load(stream)
+
+tasks_file = f"{current_directory}/tasks.yaml"
+sources_file = f"{current_directory}/sources.yaml"
+source_modules_dir = "modules/sources"
+notif_agents_file = f"notification_agents.yaml"
+notif_agent_modules_dir = "modules/notif_agents"
+
+scrapers = {}
+sources = {}
+agents = {}
+ads = {}
+
+scrapers = source.load_modules(current_directory, source_modules_dir)
+notif_agent_modules = notif_agent.load_modules(current_directory, notif_agent_modules_dir)
 
 if settings.get("data_mode") == settings.DATA_MODE_YAML:
     tasks = task.load_tasks(tasks_file)
@@ -51,8 +50,6 @@ elif settings.get("data_mode") == settings.DATA_MODE_DB:
     tasks = hooks.load_core_tasks()
     sources = hooks.load_core_sources()
     agents = hooks.load_core_notif_agents()
-    scrapers = source.load_modules(current_directory, "modules/sources")
-    notif_agent_modules = notif_agent.load_modules(current_directory, notif_agent_modules_dir)
 
 # force - run task regardless if it is enabled or not
 # recent_ads - only show the latest N ads, set to 0 to disable
@@ -147,6 +144,7 @@ def scrape_source(source, notif_agents, include=[], exclude=[], notify=True, for
         log.debug_print(f"Total all-time processed ads: {len(scraper.old_ad_ids)}")
     else:
         log.info_print(f"Saving ads disabled. Skipping...")
+
     print()
 
 # This was run as a cronjob so find all tasks that match the schedule
@@ -172,6 +170,5 @@ def cron(cron_time, cron_unit, notify=True, force_tasks=False, force_agents=Fals
             notify=notify,
             force_tasks=force_tasks,
             force_agents=force_agents,
-            recent_ads=recent_ads)
-
-    ads.save(ads, ads_file)
+            recent_ads=recent_ads
+        )
