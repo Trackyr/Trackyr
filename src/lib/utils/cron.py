@@ -14,7 +14,6 @@ def get_cron_line(time, unit):
     cron_time = convert(time, unit)
     return f'{cron_time} {path} -c {time} {unit}'
 
-
 def exists(time, unit):
     cron_string = get_cron_line(time, unit)
     out = str(subprocess.check_output(['crontab', '-l']))
