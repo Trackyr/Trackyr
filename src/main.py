@@ -250,7 +250,8 @@ def task_delete_cmd(args):
 
     # clear cronjob if no remaining tasks share the frequency
     freq_found = False
-    for task in core.tasks:
+    for t in core.tasks:
+        task = core.tasks[t]
         if task.matches_freq(freq, freq_unit):
             freq_found = True
 
