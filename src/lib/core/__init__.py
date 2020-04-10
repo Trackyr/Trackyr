@@ -18,6 +18,7 @@ from lib.utils import logger as log
 log.load(current_directory + "/logs/", settings.get("log_rotation_files"))
 
 from . import hooks
+from lib.utils import collection_tools as ct
 
 ads_file = f"{current_directory}/ads.json"
 if not os.path.exists(ads_file):
@@ -115,7 +116,7 @@ def scrape_source(source, notif_agents, include=[], exclude=[], notify=True, for
 
         if recent_ads > 0:
             # only notify the last notify_recent new_ads
-            ads_to_send = get_recent_ads(recent_ads, new_ads)
+            ads_to_send = ct.get_last_items(recent_ads, new_ads)
             log.info_print(f"Total ads to notify about: {len(ads_to_send)}")
 
         if len(notif_agents) == 0:

@@ -40,9 +40,9 @@ class Task(db.Model):
     frequency = db.Column(db.Integer, nullable=False)
     source = db.Column(db.Integer, nullable=False)
     notification_agent = db.Column(db.Integer, nullable=False)
-    colour_flag = db.Column(db.String(100), nullable=False)
-    must_contain = db.Column(db.String(100), nullable=False)
-    exclude = db.Column(db.String(100), nullable=False)
+    colour_flag = db.Column(db.String(100), nullable=True)
+    must_contain = db.Column(db.String(100), nullable=True)
+    exclude = db.Column(db.String(100), nullable=True)
 
     def __repr__(self):
         return f"Task('ID: {self.id}','{self.name}','{self.frequency} Minutes','Source: {self.source}','Notification Agent: {self.notification_agent}','Must Contain: {self.must_contain}','Exclude: {self.exclude}')"
