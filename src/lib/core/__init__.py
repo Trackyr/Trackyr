@@ -20,7 +20,7 @@ settings_file = current_directory + "/settings.yaml"
 settings.load(settings_file)
 
 from lib.utils import logger as log
-
+from lib.utils import collection_tools as ct
 log.load(current_directory + "/logs/", settings.get("log_rotation_files"))
 
 ads_file = f"{current_directory}/ads.json"
@@ -118,7 +118,7 @@ def scrape_source(source, notif_agents, include=[], exclude=[], notify=True, for
 
         if recent_ads > 0:
             # only notify the last notify_recent new_ads
-            ads_to_send = get_recent_ads(recent_ads, new_ads)
+            ads_to_send = ct.get_last_items(recent_ads, new_ads)
             log.info_print(f"Total ads to notify about: {len(ads_to_send)}")
 
         if len(notif_agents) == 0:
