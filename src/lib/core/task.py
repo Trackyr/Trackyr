@@ -1,6 +1,3 @@
-"""
-
-"""
 import os
 import yaml
 import collections
@@ -9,16 +6,12 @@ import re
 import uuid
 
 import lib.utils.creator as creator
-import lib.utils.cron as cronlib
+from lib.utils import cron
 
 import lib.utils.logger as log
 
 from lib.core import hooks
 from lib.core import settings
-
-minute="minute"
-hour="hour"
-day="day"
 
 class Task:
     yaml_tag = None
@@ -40,31 +33,23 @@ frequency: {self.frequency} {self.frequency_unit}
 source_ids: {self.source_ids}
 notif_agent_ids: {self.notif_agent_ids}
 include: {self.include}
-exclude: {self.exclude}"""
+exclude: {self.exclude}
+"""
 
+    # freq: int
+    # unit: "minutes" | "hours"
     def set_frequency(freq, unit):
         self.frequency = freq
         self.frequency_unit = unit
 
-    def yaml(self):
-        return yaml.dump(self.__dict)
-
-    @staticmethod
-    def load(data):
-        values = data
-        #print(values)
-
-        if "exclude" in values:
-            exclude = values["exclude"]
-        else:
-            exclude = []
-
-
-        return Task(**data)
-
+    # convenience method to see if this instance matches
+    # the soecified frequency
+    # freq: int
+    # unit: "minutes" | "hours"
     def matches_freq(self, time, unit):
         return time == self.frequency and unit[:1] == self.frequency_unit[:1]
 
+# load tasks from yaml file
 def load_tasks(file):
     if not os.path.exists(file):
         open(file, "w+")
@@ -78,9 +63,6 @@ def load_tasks(file):
             tasks.append(Task.load(t))
 
     return tasks
-
-def list_tasks_in_file(file):
-    list_tasks(load_tasks(file))
 
 def list_tasks(tasks):
     i = 0
@@ -262,12 +244,15 @@ def task_creator(cur_tasks, sources, notif_agents, file, edit_task=None):
             prime_task (task, recent_ads=int(recent))
 
 
-        if not cronlib.exists(task.frequency, task.frequency_unit):
+        if not cron.exists(task.frequency, task.frequency_unit):
             if creator.yes_no(f"Add cronjob for '{task.frequency} {task.frequency_unit}'", "y"):
-                cronlib.clear()
-                for t in cur_tasks:
-                    if not cronlib.exists(t.frequency, task.frequency_unit):
-                        cronlib.add(task.frequency, task.frequency_unit)
+                cron.clear()
+                for task_id in cur_tasks:
+                    task = cur_tasks[task_id]
+                    #if not cron.exists(t.frequency, task.frequency_unit):
+                        #cron.add(task.frequency, task.frequency_unit)
+                    cron.add(task.frequency, task.frequency_unit)
+                    print (f"adding: {task}")
         else:
             print (f"Cronjob already exists for '{task.frequency} {task.frequency_unit}'... skipping")
 
@@ -448,7 +433,8 @@ def create_task(cur_tasks, sources, notif_agents, file):
 
 def edit_task(cur_tasks, sources, notif_agents, file):
     creator.print_title("Edit Task")
-    task = creator.prompt_complex_list("Choose a task", cur_tasks, "name", extra_options=["d"], extra_options_desc=["done"])
+    print (cur_tasks)
+    task = creator.prompt_complex_dict("Choose a task", cur_tasks, "name", extra_options=["d"], extra_options_desc=["done"])
     if task == "d":
         return
     else:
