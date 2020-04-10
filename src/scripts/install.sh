@@ -62,7 +62,7 @@ WantedBy=multi-user.target
 [Service]
 User=$uservar
 WorkingDirectory=/home/$uservar/Trackyr/src
-ExecStart=$(which gunicorn) -b 0.0.0.0 -w 3 run:app
+ExecStart=$(which gunicorn) -b 0.0.0.0:5000 -w 3 run:app
 TimeoutSec=600
 Restart=on-failure
 RuntimeDirectoryMode=755
