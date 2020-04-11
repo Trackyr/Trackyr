@@ -29,7 +29,7 @@ with open(ads_file, "r") as stream:
     ads = yaml.safe_load(stream)
 
 for key in ads:
-    log.debug_print(f"Total old ads from {key}: {len(ads[key])}")
+    log.debug(f"Total old ads from {key}: {len(ads[key])}")
 
 tasks_file = f"{current_directory}/tasks.yaml"
 sources_file = f"{current_directory}/sources.yaml"
@@ -40,7 +40,8 @@ notif_agent_modules_dir = "modules/notif_agents"
 scrapers = source.load_modules(current_directory, source_modules_dir)
 notif_agent_modules = notif_agent.load_modules(current_directory, notif_agent_modules_dir)
 
-log.debug_print(f"Loading data using data mode: {settings.get('data_mode')}")
+log.debug(f"Loading data using data mode: {settings.get('data_mode')}")
+
 if settings.get("data_mode") == settings.DATA_MODE_YAML:
     tasks = task.load_tasks(tasks_file)
     sources = source.load_sources(sources_file)
