@@ -11,6 +11,7 @@ import argparse
 
 from lib.core import settings
 from lib import core
+from lib.utils import cron
 
 def main():
     parser = argparse.ArgumentParser()
@@ -112,12 +113,13 @@ def source_cmd(args):
         core.source.edit_source(core.sources, core.scrapers, core.sources_file)
 
 def refresh_cron():
-    cronlib.clear()
-    for t in core.tasks:
-        if cronlib.exists(t.frequency, t.frequency_unit):
+    cron.clear()
+    for id in core.tasks:
+        t = core.tasks[id]
+        if cron.exists(t.frequency, t.frequency_unit):
             continue
 
-        cronlib.add(t.frequency, t.frequency_unit)
+        cron.add(t.frequency, t.frequency_unit)
 
 def dry_run(task):
     core.run_task(task, notify=False, force_tasks=True, save_ads=False)
