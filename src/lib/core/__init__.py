@@ -21,22 +21,13 @@ from . import hooks
 from lib.utils import collection_tools as ct
 
 ads_file = f"{current_directory}/ads.json"
-if not os.path.exists(ads_file):
-    with open(ads_file, "w") as stream:
-        stream.write("{}")
-
-with open(ads_file, "r") as stream:
-    ads = yaml.safe_load(stream)
-
-for key in ads:
-    log.debug(f"Total old ads from {key}: {len(ads[key])}")
-
 tasks_file = f"{current_directory}/tasks.yaml"
 sources_file = f"{current_directory}/sources.yaml"
 source_modules_dir = "modules/sources"
 notif_agents_file = f"notification_agents.yaml"
 notif_agent_modules_dir = "modules/notif_agents"
 
+ads = ad.load(ads_file)
 scrapers = source.load_modules(current_directory, source_modules_dir)
 notif_agent_modules = notif_agent.load_modules(current_directory, notif_agent_modules_dir)
 
@@ -86,7 +77,7 @@ def run_task(task, notify=True, force_tasks=False, force_agents=False, recent_ad
         )
 
     if save_ads:
-        save_all_ads()
+        ad.save_ads(ads, ads_file)
 
 def scrape_source(source, notif_agents, include=[], exclude=[], notify=True, force_tasks=False, force_agents=False, recent_ads=0, save_ads=True):
     log.info_print(f"Source: {source.name}")
@@ -185,7 +176,7 @@ def cron(cron_time, cron_unit, notify=True, force_tasks=False, force_agents=Fals
             recent_ads=recent_ads
         )
 
-    save_all_ads()
+    ad.save_ads(ads, ads_file)
 
 def save_all_ads():
      with open(ads_file, "w") as stream:
