@@ -107,7 +107,6 @@ def get_names(notif_agents):
     return names
 
 def get_enabled(agents):
-    print (agents)
     result = []
     for a in agents:
         if a.enabled:

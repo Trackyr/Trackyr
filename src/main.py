@@ -18,12 +18,13 @@ def main():
     parser = argparse.ArgumentParser()
     notify_group = parser.add_mutually_exclusive_group()
     notify_group.add_argument("-s", "--skip-notification", action="store_true", default=False)
-    if settings.get("recent_ads") == 0:
-        recent_ads_help = "Only notify only most recent \# of ads. Default is infinite (0)"
-    else:
-        recent_ads_help = f"Only notify only most recent \# of ads. Default is {settings.get('recent_ads')}"
 
-    notify_group.add_argument("--notify-recent", type=int, default=settings.get("recent_ads"), help=f"Only notify only most recent \# of ads. Default is {settings.get('recent_ads')}")    
+    notify_group.add_argument(
+        "--notify-recent",
+        type=int,
+        help="Limit notification to only most recent \# of ads. 0 sets no limit"
+    )
+
     parser.add_argument("--force-tasks", action="store_true", help="Force tasks to run even if they are disabled")
     parser.add_argument("--force-notification-agents", action="store_true", help="Force notification agents to be used even when disabled")
 
@@ -67,6 +68,7 @@ def main():
             force_tasks=args.force_tasks,
             force_agents=args.force_notification_agents,
             recent_ads=args.notify_recent)
+
     elif args.cmd == "task":
         task_cmd(args)
 
@@ -77,7 +79,12 @@ def main():
         notif_agent_cmd(args)
 
     elif args.prime_all_tasks:
-        prime_all_tasks(args)
+        if args.notify_recent is None:
+            recent = 3
+        else:
+            recent = args.notify_recent
+
+        core.task.prime_all(core.tasks, recent_ads=recent)
 
     elif args.refresh_cron:
         refresh_cron()
@@ -136,7 +143,6 @@ def notif_agent_cmd(args):
     else:
         raise ValueError(f"Unknown notification-agent command: {args.notif_agent_cmd}")
 
-
 def refresh_cron():
     cron.clear()
     for id in core.tasks:
@@ -145,23 +151,6 @@ def refresh_cron():
             continue
 
         cron.add(t.frequency, t.frequency_unit)
-
-def dry_run(task):
-    core.run_task(task, notify=False, force_tasks=True, save_ads=False)
-
-def prime_task(task, recent_ads = settings.get("recent_ads")):
-    if recent_ads > 0:
-        notify = True
-    else:
-        notify = False
-
-    core.run_task(task, notify=notify, recent_ads=recent_ads)
-
-def prime_all_tasks(args):
-    for task in core.tasks:
-        core.run_task(task, notify=not args.skip_notification, recent_ads=args.notify_recent)
-
-    save_ads()
 
 if __name__ == "__main__":
     main()

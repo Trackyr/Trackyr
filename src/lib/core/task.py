@@ -1,34 +1,51 @@
 import os
-import yaml
 import collections
 import subprocess
 import re
 import uuid
 
-import lib.utils.creator as creator
-from lib.utils import cron
-
+from lib.core import settings
 import lib.utils.logger as log
 
+from lib.utils import cron
 from lib.core import hooks
-from lib.core import settings
+import lib.utils.creator as creator
+from lib import core
+
+import yaml
+# don't output yaml class tags
+def noop(self, *args, **kw):
+    pass
+
+yaml.emitter.Emitter.process_tag = noop
+
 
 class Task:
-    yaml_tag = None
+    def __init__(self,
+            id = uuid.uuid4(),
+            name = "New Task",
+            enabled = True,
+            frequency = 15,
+            frequency_unit = "minutes",
+            source_ids = [],
+            notif_agent_ids = [],
+            include = [],
+            exclude = []
+        ):
 
-    def __init__(self, **kwargs):
-        self.id = kwargs.get("id", uuid.uuid4())
-        self.name = kwargs.get("name", "New Task")
-        self.enabled = kwargs.get("enabled", True)
-        self.frequency = kwargs.get("frequency", 15)
-        self.frequency_unit = kwargs.get("frequency_unit", "minutes")
-        self.source_ids = kwargs.get("source_ids", [])
-        self.notif_agent_ids = kwargs.get("notif_agent_ids", [])
-        self.include = kwargs.get("include", [])
-        self.exclude = kwargs.get("exclude", [])
+        self.id = id
+        self.name = name
+        self.enabled = enabled
+        self.frequency = frequency
+        self.frequency_unit = frequency_unit
+        self.source_ids = source_ids
+        self.notif_agent_ids = notif_agent_ids
+        self.include = include
+        self.exclude = exclude
 
     def __repr__(self):
-        return f"""name:{self.name}
+        return f"""
+name:{self.name}
 frequency: {self.frequency} {self.frequency_unit}
 source_ids: {self.source_ids}
 notif_agent_ids: {self.notif_agent_ids}
@@ -65,12 +82,10 @@ def load_tasks(file):
     return tasks
 
 def list_tasks(tasks):
-    i = 0
     for t in tasks:
-        print (f"[{i}]")
-        print_task(t)
-        i = i+1
+        print(tasks[t])
 
+# save file depending on the data mode
 def save(*args, **kwargs):
     if (settings.get("data_mode") == settings.DATA_MODE_DB):
         save_db(args[0], **kwargs)
@@ -109,29 +124,20 @@ def delete_task_from_file(index, file):
     del(tasks[index])
     save_tasks(tasks, file)
 
-def print_task(task):
-        print(f"""Name: {task.name}
-Source ids: {task.source_ids}
-Frequency: {task.frequency} {task.frequency_unit}
-Url: {task.url}
-Include: {task.include}
-Exclude: {task.exclude}
-""")
+def prime(task, notify=True, recent_ads = 3):
+    if recent_ads > 0:
+        notify = True
+    else:
+        notify = False
 
-# <-- don't output yaml class tags
-def noop(self, *args, **kw):
-    pass
+    core.run_task(task, notify=notify, recent_ads=recent_ads)
 
-yaml.emitter.Emitter.process_tag = noop
-# --------------------------------------->
+def prime_all(tasks, notify=True, recent_ads=3):
+    for id in tasks:
+        prime(tasks[id], notify=notify, recent_ads=recent_ads)
 
-if __name__ == "__main__":
-    t = load_tasks("tasks.yaml")
-    save_tasks(t, "tasks.yaml", "tasks.yaml")
 
 def task_creator(cur_tasks, sources, notif_agents, file, edit_task=None):
-    from main import dry_run, prime_task
-
     while True:
         t = {}
         if edit_task:
@@ -198,7 +204,7 @@ def task_creator(cur_tasks, sources, notif_agents, file, edit_task=None):
                 elif confirm == "dryrun":
                     if creator.yes_no("Execute dry run?", "y"):
                         log.debug_print("Executing dry run...")
-                        dry_run(task)
+                        core.run_task(task, notify=notify, recent_ads=recent_adps)
 
                     continue
                 else:
@@ -241,8 +247,12 @@ def task_creator(cur_tasks, sources, notif_agents, file, edit_task=None):
 
         if creator.yes_no("Prime this task?", "y") == "y":
             recent = creator.prompt_num("How many of the latest ads do you want notified?", default="3")
-            prime_task (task, recent_ads=int(recent))
+            if recent_ads==0:
+                notify=False
+            else:
+                notify=True
 
+            prime(task, notify=notify, recent_ads=int(recent))
 
         if not cron.exists(task.frequency, task.frequency_unit):
             if creator.yes_no(f"Add cronjob for '{task.frequency} {task.frequency_unit}'", "y"):

@@ -67,8 +67,8 @@ def run_task(task, notify=True, force_tasks=False, force_agents=False, recent_ad
         else:
             log.info_print("Task disabled but forcing task to run...")
 
-
     task_notif_agents = notif_agent.get_notif_agents_by_ids(agents, task.notif_agent_ids)
+
     if notify == True and force_agents == False:
         notif_agent.notif_agents_enabled_check(task_notif_agents)
 
