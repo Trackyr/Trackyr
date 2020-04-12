@@ -1,4 +1,3 @@
-# so that you can call core.Task instead of core.task.Task
 from .task import Task
 from .notif_agent import NotifAgent
 from .source import Source
@@ -6,16 +5,17 @@ from .source import Source
 import yaml
 import sys
 import os
-import importlib
+import json
+import imp
 
-current_directory = os.getcwd()
+current_directory = os.path.dirname(os.path.abspath(__file__ + "/../.."))
 
 from . import settings
 settings_file = current_directory + "/settings.yaml"
-settings.load(settings_file)
 
 from lib.utils import logger as log
 log.load(current_directory + "/logs/", settings.get("log_rotation_files"))
+log.set_level(settings.get("log_mode"))
 
 from . import hooks
 from lib.utils import collection_tools as ct
@@ -28,20 +28,19 @@ if not os.path.exists(ads_file):
 with open(ads_file, "r") as stream:
     ads = yaml.safe_load(stream)
 
+for key in ads:
+    log.debug_print(f"Total old ads from {key}: {len(ads[key])}")
+
 tasks_file = f"{current_directory}/tasks.yaml"
 sources_file = f"{current_directory}/sources.yaml"
 source_modules_dir = "modules/sources"
 notif_agents_file = f"notification_agents.yaml"
 notif_agent_modules_dir = "modules/notif_agents"
 
-scrapers = {}
-sources = {}
-agents = {}
-ads = {}
-
 scrapers = source.load_modules(current_directory, source_modules_dir)
 notif_agent_modules = notif_agent.load_modules(current_directory, notif_agent_modules_dir)
 
+log.debug_print(f"Loading data using data mode: {settings.get('data_mode')}")
 if settings.get("data_mode") == settings.DATA_MODE_YAML:
     tasks = task.load_tasks(tasks_file)
     sources = source.load_sources(sources_file)
@@ -85,6 +84,9 @@ def run_task(task, notify=True, force_tasks=False, force_agents=False, recent_ad
             save_ads=save_ads
         )
 
+    if save_ads:
+        save_all_ads()
+
 def scrape_source(source, notif_agents, include=[], exclude=[], notify=True, force_tasks=False, force_agents=False, recent_ads=0, save_ads=True):
     log.info_print(f"Source: {source.name}")
     log.info_print(f"Module: {source.module}")
@@ -97,9 +99,15 @@ def scrape_source(source, notif_agents, include=[], exclude=[], notify=True, for
         print(f"Excluding: {exclude}")
 
     scraper = scrapers[source.module]
+
     old_ads = []
     if source.module in ads:
         old_ads = ads[source.module]
+        log.debug(f"Total old ads: {len(old_ads)}")
+    else:
+        log.debug(f"No old ads found for module: {source.module}")
+        print(ads)
+
 
     new_ads, ad_title = scraper.scrape_for_ads(old_ads, exclude=exclude, **source.module_properties)
 
@@ -117,10 +125,12 @@ def scrape_source(source, notif_agents, include=[], exclude=[], notify=True, for
         if recent_ads > 0:
             # only notify the last notify_recent new_ads
             ads_to_send = ct.get_last_items(recent_ads, new_ads)
+            log.debug(f"Recent ads set to: {recent_ads} got: {len(ads_to_send)}")
             log.info_print(f"Total ads to notify about: {len(ads_to_send)}")
 
         if len(notif_agents) == 0:
             log.warning_print("No notification agents set... nothing to notify")
+
         else:
             if len(notif_agents) > 1:
                 log.info_print(f"Notifying agents: {notif_agent.get_names(notif_agents)}")
@@ -142,7 +152,7 @@ def scrape_source(source, notif_agents, include=[], exclude=[], notify=True, for
 
     if save_ads:
         ads[source.module] = scraper.old_ad_ids
-        log.debug_print(f"Total all-time processed ads: {len(scraper.old_ad_ids)}")
+        log.debug(f"Total all-time processed ads: {len(scraper.old_ad_ids)}")
     else:
         log.info_print(f"Saving ads disabled. Skipping...")
 
@@ -173,3 +183,9 @@ def cron(cron_time, cron_unit, notify=True, force_tasks=False, force_agents=Fals
             force_agents=force_agents,
             recent_ads=recent_ads
         )
+
+    save_all_ads()
+
+def save_all_ads():
+     with open(ads_file, "w") as stream:
+        json.dump(ads, stream)

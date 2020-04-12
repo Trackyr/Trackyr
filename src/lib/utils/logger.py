@@ -47,7 +47,6 @@ def load(log_path, log_rotation_files = 5):
 
     logger = Logger(log_path, log_rotation_files, log_file_debug, log_file_cron)
     #set_level(INFO)
-
     debug("Logger initialized!")
 
 def add_handler(handler):
@@ -75,7 +74,7 @@ def log_print(level, s, **kwargs):
     print(s)
 
 def set_level(level):
-    logging.level = level
+    logger.rootLogger.level = level
 
 def info(s, **kwargs):
  #   if not "logger" in globals():

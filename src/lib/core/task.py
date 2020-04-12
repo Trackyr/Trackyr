@@ -433,7 +433,6 @@ def create_task(cur_tasks, sources, notif_agents, file):
 
 def edit_task(cur_tasks, sources, notif_agents, file):
     creator.print_title("Edit Task")
-    print (cur_tasks)
     task = creator.prompt_complex_dict("Choose a task", cur_tasks, "name", extra_options=["d"], extra_options_desc=["done"])
     if task == "d":
         return
