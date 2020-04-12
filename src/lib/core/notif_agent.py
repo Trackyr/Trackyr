@@ -1,13 +1,19 @@
 #!/usr/bin/env python3
 
-import yaml
 import sys
 import os
 from importlib import util, machinery
-#import json
 import inspect
 import uuid
 import re
+
+import yaml
+# don't output yaml class tags
+def noop(self, *args, **kw):
+    pass
+
+yaml.emitter.Emitter.process_tag = noop
+
 
 from lib.core import settings
 from lib.core import hooks
@@ -19,48 +25,49 @@ from lib.utils import creator
 class NotifAgent:
     enabled = True
 
-    def __init__(self, id, name, module, module_properties):
+    def __init__(self,
+                id = creator.create_simple_id(core.notif_agents),
+                name = "New Notification Agent",
+                module = None,
+                module_properties = None
+        ):
+
         self.id = id
         self.name = name
         self.module = module
         self.module_properties = module_properties
 
     def __repr__(self):
-        return f"""id: {self.id}
+        return f"""
+id: {self.id}
 name:{self.name}
 module: {self.module}
-module_properties: {self.module_properties}"""
+module_properties: {self.module_properties}
+"""
 
 # looks for sub diretories inside "{directory}"
 # and inspects its contents for a "agent.py" file and grabs the class inside that file
-# uses config files inside of  {directory}/{agent_dir}/config.yaml
-# RETURNS: a dictionary {agent_name : agent_instance}
-def load_modules(directory, agent_dir):
+# RETURNS: a dictionary {module_name : module_instance}
+def load_modules(directory, modules_dir):
     result = {}
     filename = "agent.py"
-    config_file = "config.yaml"
 
-    subdirs = refl.get_directories(f"{directory}/{agent_dir}")
+    subdirs = refl.get_directories(f"{directory}/{modules_dir}")
     modules = {}
 
-    for subdir in subdirs:
-        scraper_name = subdir
-        path = f"{directory}/{agent_dir}/{subdir}/{filename}"
+    for module_name in subdirs:
+        path = f"{directory}/{modules_dir}/{module_name}/{filename}"
         if not os.path.exists(path):
             continue
 
-        namespace = refl.path_to_namespace(f"{agent_dir}/{subdir}/{filename}")
+        namespace = refl.path_to_namespace(f"{modules_dir}/{module_name}/{filename}")
         finder = machinery.PathFinder()
         spec = util.find_spec(f"{namespace}")
-        #spec = machinery.find_spec(f"{path}")
         module = util.module_from_spec(spec)
-#        sys.modules[module_name] = module
         spec.loader.exec_module(module)
 
-#        namespace = refl.path_to_namespace(path)
-#        module = refl.get_module(namespace)
         module_class_name, module_class = refl.get_class(module, namespace)
-        result[subdir] = module_class()
+        result[module_name] = module_class()
 
     return result
 
@@ -98,7 +105,6 @@ def get_notif_agents_by_ids(notif_agents, ids):
 
     return result
 
-
 def get_names(notif_agents):
     names = []
     for a in notif_agents:
@@ -114,20 +120,15 @@ def get_enabled(agents):
 
     return result
 
-# <-- don't output yaml class tags
-def noop(self, *args, **kw):
-    pass
-
-yaml.emitter.Emitter.process_tag = noop
-
+# save agents depending on data mode
 def save(*args, **kwargs):
     if (settings.get("data_mode") == settings.DATA_MODE_DB):
         save_db(args[0], **kwargs)
     elif (settings.get("data_mode") == settings.DATA_MODE_YAML):
         save_yaml(args[0], args[1], **kwargs)
 
-def save_db(sources):
-    hooks.save_to_db(sources)
+def save_db(notif_agents):
+    hooks.save_to_db(notif_agentss)
 
 def save_yaml(notif_agents, file, preserve_comments=False):
     if isinstance(notif_agents, dict):
@@ -165,9 +166,7 @@ def notif_agent_creator(cur_notif_agents, modules, file, edit_notif_agent=None):
         for p in e.module_properties:
             n[f"prop_{p}"] = e.module_properties[p]
 
-
     while True:
-#        n["id"] = creator.prompt_id(creator.get_id_list(cur_notif_agents), default = n.get("id", None))
         n["id"] = creator.create_simple_id(list(cur_notif_agents))
         n["name"] = creator.prompt_string("Name", default=n.get("name", None))
 
@@ -195,7 +194,6 @@ def notif_agent_creator(cur_notif_agents, modules, file, edit_notif_agent=None):
         for p in props:
             val = n[f"prop_{p}"]
             print(f"{p}: {val}")
-#        print("}")
         print ("-----------------------------")
 
         set_props = {}
@@ -229,14 +227,6 @@ def notif_agent_creator(cur_notif_agents, modules, file, edit_notif_agent=None):
 
     cur_notif_agents[n["id"]] = save_notif_agent
     save(cur_notif_agents, file)
-
-def test_notif_agent(notif_agent, modules):
-    module = modules[notif_agent.module]
-    module.send(
-        title = f"Testing '{notif_agent.name}'",
-        message = "This is a test message",
-        **notif_agent.module_properties
-    )
 
 def create_notif_agent(cur_notif_agents, modules, file, edit_notif_agent=None):
     creator.print_title("Add Notification Agent")
@@ -329,6 +319,13 @@ def create_notif_agent_choose_module(modules, default=None):
             if module_index >= 0 and module_index < len(modules_list):
                 return modules_list[module_index]
 
+def test_notif_agent(notif_agent, modules):
+    module = modules[notif_agent.module]
+    module.send(
+        title = f"Testing '{notif_agent.name}'",
+        message = "This is a test message",
+        **notif_agent.module_properties
+    )
 
 def notif_agents_enabled_check(notif_agents):
     if len(get_enabled(notif_agents)) == 0:
