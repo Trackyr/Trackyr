@@ -66,24 +66,17 @@ exclude: {self.exclude}
     def matches_freq(self, time, unit):
         return time == self.frequency and unit[:1] == self.frequency_unit[:1]
 
-# load tasks from yaml file
-def load_tasks(file):
-    if not os.path.exists(file):
-        open(file, "w+")
+def prime(task, notify=True, recent_ads = 3):
+    if recent_ads > 0:
+        notify = True
+    else:
+        notify = False
 
-    with open(file, "r") as stream:
-        tasks_yaml = yaml.safe_load(stream)
+    core.run_task(task, notify=notify, recent_ads=recent_ads)
 
-    tasks = []
-    if tasks_yaml is not None:
-        for t in tasks_yaml:
-            tasks.append(Task.load(t))
-
-    return tasks
-
-def list_tasks(tasks):
-    for t in tasks:
-        print(tasks[t])
+def prime_all(tasks, notify=True, recent_ads=3):
+    for id in tasks:
+        prime(tasks[id], notify=notify, recent_ads=recent_ads)
 
 # save file depending on the data mode
 def save(*args, **kwargs):
@@ -110,6 +103,25 @@ def save_yaml(tasks, file, preserve_comments=True):
 
         yaml.dump(tasks, stream, default_flow_style=False, sort_keys=False)
 
+# load tasks from yaml file
+def load_tasks(file):
+    if not os.path.exists(file):
+        open(file, "w+")
+
+    with open(file, "r") as stream:
+        tasks_yaml = yaml.safe_load(stream)
+
+    tasks = []
+    if tasks_yaml is not None:
+        for t in tasks_yaml:
+            tasks.append(Task.load(t))
+
+    return tasks
+
+def list_tasks(tasks):
+    for t in tasks:
+        print(tasks[t])
+
 def append_task_to_file(task, file):
     tasks = load_tasks(file)
     tasks.append(task)
@@ -123,19 +135,6 @@ def delete_task_from_file(index, file):
 
     del(tasks[index])
     save_tasks(tasks, file)
-
-def prime(task, notify=True, recent_ads = 3):
-    if recent_ads > 0:
-        notify = True
-    else:
-        notify = False
-
-    core.run_task(task, notify=notify, recent_ads=recent_ads)
-
-def prime_all(tasks, notify=True, recent_ads=3):
-    for id in tasks:
-        prime(tasks[id], notify=notify, recent_ads=recent_ads)
-
 
 def task_creator(cur_tasks, sources, notif_agents, file, edit_task=None):
     while True:
@@ -162,7 +161,6 @@ def task_creator(cur_tasks, sources, notif_agents, file, edit_task=None):
             t["notif_agents"] = e.notif_agent_ids
 
         while True:
-#            t["id"] = creator.prompt_id(creator.get_id_list(cur_tasks))
             t["id"] = creator.create_simple_id(list(cur_tasks))
             t["name"] = creator.prompt_string("Name", default=t.get("name", None))
             t["freq"] = creator.prompt_num("Frequency", default=t.get("freq", 15))
