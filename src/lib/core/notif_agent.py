@@ -1,66 +1,76 @@
 #!/usr/bin/env python3
 
-import yaml
 import sys
 import os
 from importlib import util, machinery
-#import json
+
 import inspect
 import uuid
 import re
 
-from lib.core import settings
-from lib.core import hooks
+import yaml
+# don't output yaml class tags
+def noop(self, *args, **kw):
+    pass
+
+yaml.emitter.Emitter.process_tag = noop
+
+import lib.core.settings as settings
+import lib.core as core
+import lib.core.hooks as hooks
 import lib.utils.reflection as refl
 import lib.utils.logger as log
-
-from lib.utils import creator
+import lib.utils.creator as creator
 
 class NotifAgent:
     enabled = True
 
-    def __init__(self, id, name, module, module_properties):
+    def __init__(self,
+                id = None,
+                name = "New Notification Agent",
+                module = None,
+                module_properties = None
+        ):
+
+        if id is None:
+            id = creator.create_simple_id(core.get_tasks()),
+
         self.id = id
         self.name = name
         self.module = module
         self.module_properties = module_properties
 
     def __repr__(self):
-        return f"""id: {self.id}
+        return f"""
+id: {self.id}
 name:{self.name}
 module: {self.module}
-module_properties: {self.module_properties}"""
+module_properties: {self.module_properties}
+"""
 
 # looks for sub diretories inside "{directory}"
 # and inspects its contents for a "agent.py" file and grabs the class inside that file
-# uses config files inside of  {directory}/{agent_dir}/config.yaml
-# RETURNS: a dictionary {agent_name : agent_instance}
-def load_modules(directory, agent_dir):
+# RETURNS: a dictionary {module_name : module_instance}
+def load_modules(directory, modules_dir):
     result = {}
     filename = "agent.py"
-    config_file = "config.yaml"
 
-    subdirs = refl.get_directories(f"{directory}/{agent_dir}")
+    subdirs = refl.get_directories(f"{directory}/{modules_dir}")
     modules = {}
 
-    for subdir in subdirs:
-        scraper_name = subdir
-        path = f"{directory}/{agent_dir}/{subdir}/{filename}"
+    for module_name in subdirs:
+        path = f"{directory}/{modules_dir}/{module_name}/{filename}"
         if not os.path.exists(path):
             continue
 
-        namespace = refl.path_to_namespace(f"{agent_dir}/{subdir}/{filename}")
+        namespace = refl.path_to_namespace(f"{modules_dir}/{module_name}/{filename}")
         finder = machinery.PathFinder()
         spec = util.find_spec(f"{namespace}")
-        #spec = machinery.find_spec(f"{path}")
         module = util.module_from_spec(spec)
-#        sys.modules[module_name] = module
         spec.loader.exec_module(module)
 
-#        namespace = refl.path_to_namespace(path)
-#        module = refl.get_module(namespace)
         module_class_name, module_class = refl.get_class(module, namespace)
-        result[subdir] = module_class()
+        result[module_name] = module_class()
 
     return result
 
@@ -98,7 +108,6 @@ def get_notif_agents_by_ids(notif_agents, ids):
 
     return result
 
-
 def get_names(notif_agents):
     names = []
     for a in notif_agents:
@@ -107,7 +116,6 @@ def get_names(notif_agents):
     return names
 
 def get_enabled(agents):
-    print (agents)
     result = []
     for a in agents:
         if a.enabled:
@@ -115,20 +123,15 @@ def get_enabled(agents):
 
     return result
 
-# <-- don't output yaml class tags
-def noop(self, *args, **kw):
-    pass
-
-yaml.emitter.Emitter.process_tag = noop
-
+# save agents depending on data mode
 def save(*args, **kwargs):
     if (settings.get("data_mode") == settings.DATA_MODE_DB):
         save_db(args[0], **kwargs)
     elif (settings.get("data_mode") == settings.DATA_MODE_YAML):
         save_yaml(args[0], args[1], **kwargs)
 
-def save_db(sources):
-    hooks.save_to_db(sources)
+def save_db(notif_agents):
+    hooks.save_to_db(notif_agents)
 
 def save_yaml(notif_agents, file, preserve_comments=False):
     if isinstance(notif_agents, dict):
@@ -166,9 +169,7 @@ def notif_agent_creator(cur_notif_agents, modules, file, edit_notif_agent=None):
         for p in e.module_properties:
             n[f"prop_{p}"] = e.module_properties[p]
 
-
     while True:
-#        n["id"] = creator.prompt_id(creator.get_id_list(cur_notif_agents), default = n.get("id", None))
         n["id"] = creator.create_simple_id(list(cur_notif_agents))
         n["name"] = creator.prompt_string("Name", default=n.get("name", None))
 
@@ -196,7 +197,6 @@ def notif_agent_creator(cur_notif_agents, modules, file, edit_notif_agent=None):
         for p in props:
             val = n[f"prop_{p}"]
             print(f"{p}: {val}")
-#        print("}")
         print ("-----------------------------")
 
         set_props = {}
@@ -217,27 +217,23 @@ def notif_agent_creator(cur_notif_agents, modules, file, edit_notif_agent=None):
             edit_notif_agent.module_properties=set_props
             save_notif_agent = edit_notif_agent
 
-        confirm = creator.prompt_options("Choose an option", ["save","edit","test","quit"])
+        while True:
+            confirm = creator.prompt_options("Choose an option", ["save","edit","test","quit"])
+            if confirm == "test":
+                test_notif_agent(save_notif_agent, modules)
+                continue
+            else:
+                break
+
         if confirm == "save":
             break
         elif confirm == "edit":
-            continue
-        elif confirm == "test":
-            test_notif_agent(save_notif_agent, modules)
             continue
         elif confirm == "quit":
             return
 
     cur_notif_agents[n["id"]] = save_notif_agent
     save(cur_notif_agents, file)
-
-def test_notif_agent(notif_agent, modules):
-    module = modules[notif_agent.module]
-    module.send(
-        title = f"Testing '{notif_agent.name}'",
-        message = "This is a test message",
-        **notif_agent.module_properties
-    )
 
 def create_notif_agent(cur_notif_agents, modules, file, edit_notif_agent=None):
     creator.print_title("Add Notification Agent")
@@ -251,9 +247,8 @@ def edit_notif_agent(cur_notif_agents, modules, file):
     else:
         create_notif_agent(cur_notif_agents, modules, file, edit_notif_agent=notif_agent)
 
-def delete_notif_agent(notif_agents_dict, notif_agents_file, tasks_list, tasks_file):
+def delete_notif_agent(notif_agents_dict, notif_agents_file, tasks_dict, tasks_file):
     creator.print_title("Delete Notification Agent")
-    save = False
     changes_made = False
 
     while True:
@@ -262,15 +257,17 @@ def delete_notif_agent(notif_agents_dict, notif_agents_file, tasks_list, tasks_f
             notif_agents_list.append(notif_agents_dict[n])
 
         for i in range(len(notif_agents_list)):
-            print(f"{i} - {notif_agents_list[i].name} [id: {notif_agents_list[i].id}]")
+            print(f"{i} - {notif_agents_list[i].name}")
 
         print ("s - save and quit")
         print ("q - quit without saving")
 
         tnum_str = creator.prompt_string("Delete notif_agent")
         if tnum_str == "s":
-            save = True
+            save(notif_agents_dict, notif_agents_file)
+            core.task.save(tasks_dict, tasks_file)
             break
+
         elif tnum_str == "q":
             if changes_made and creator.yes_no("Quit without saving","n") == "y":
                 return
@@ -281,15 +278,46 @@ def delete_notif_agent(notif_agents_dict, notif_agents_file, tasks_list, tasks_f
             tnum = int(tnum_str)
             if tnum >= 0 and tnum < len(notif_agents_list):
                 if creator.yes_no(f"Delete {notif_agents_list[tnum].name}", "y") == "y":
-                    do_delete_notif_agent(notif_agents_list[tnum].id, notif_agents_dict, tasks_list)
+                    used_by = get_tasks_using_notif_agent(notif_agents_dict[notif_agents_list[tnum].id], tasks_dict)
+                    if used_by is not None and len(used_by) > 0:
+                        task_names = []
+                        for u in used_by:
+                            task_names.append(f"'{u.name}'")
+                        print(f"Cannot delete notification agent '{notif_agents_list[tnum].name}'. It is being used by: {','.join(task_names)}")
+                        print("Delete tasks using this notification agent or remove this notification agent from those tasks first before deleting.")
+                    do_delete_notif_agent(notif_agents_list[tnum].id, notif_agents_dict, tasks_dict)
                     changes_made = True
 
-    if save:
-        save(notif_agents_list, notif_agents_file)
-        tasklib.save(tasks_list, tasks_file)
+def get_tasks_using_notif_agent(notif_agent, tasks):
+    result = []
 
-def do_delete_notif_agent(id, notif_agents_dict, tasks_list):
-    for t in tasks_list:
+    for id in tasks:
+        if notif_agent.id in tasks[id].notif_agent_ids:
+            result.append(tasks[id])
+
+    return result
+
+def do_delete_notif_agent(*args, **kwargs):
+    if settings.get("data_mode")  == settings.DATA_MODE_DB:
+        do_delete_notif_agent_db(args[0], args[1], args[2])
+
+    elif settings.get("data_mode")  == settings.DATA_MODE_DB:
+        do_delete_notif_agent_yaml(args[0], args[1], args[2])
+
+def do_delete_notif_agent_db(id, notif_agents_dict, tasks_dict):
+    for task_id in tasks_dict:
+        t = tasks_dict[task_id]
+
+        if id in t.notif_agent_ids:
+            t.notif_agent_ids.remove(id)
+
+    hooks.delete_notif_agent_model(notif_agents_dict[id])
+    del notif_agents_dict[id]
+
+def do_delete_notif_agent_yaml(id, notif_agents_dict, tasks_dict):
+    for task_id in tasks_dict:
+        t = tasks_dict[task_id]
+
         if id in t.notif_agent_ids:
             t.notif_agent_ids.remove(id)
 
@@ -330,6 +358,15 @@ def create_notif_agent_choose_module(modules, default=None):
             if module_index >= 0 and module_index < len(modules_list):
                 return modules_list[module_index]
 
+def test_notif_agent(notif_agent, modules):
+    log.debug_print(f"Testing notification agent: '{notif_agent.name}'")
+    module = modules[notif_agent.module]
+    module.send(
+        title = f"Testing '{notif_agent.name}'",
+        message = "This is a test message",
+        **notif_agent.module_properties
+    )
+    print("Done!")
 
 def notif_agents_enabled_check(notif_agents):
     if len(get_enabled(notif_agents)) == 0:

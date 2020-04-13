@@ -37,8 +37,6 @@ class Logger():
 def load(log_path, log_rotation_files = 5):
     global logger
 
-    current_directory = os.path.dirname(os.path.realpath(__file__))
-
     if not os.path.exists(log_path):
         os.makedirs(log_path)
 

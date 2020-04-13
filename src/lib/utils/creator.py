@@ -1,9 +1,8 @@
-from lib import core
-
 import uuid
 import re
 
 import lib.utils.logger as log
+import lib.core as core
 
 def prompt_num(msg, force_positive=True, default=None):
     default_str = ""

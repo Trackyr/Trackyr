@@ -1,21 +1,29 @@
 #!usr/bin/env python3
 import os
 import sys
-import yaml
 import collections
 import subprocess
 import re
 import uuid
 
+import yaml
+# don't output yaml class tags
+def noop(self, *args, **kw):
+    pass
+
+yaml.emitter.Emitter.process_tag = noop
+
 from importlib import util, machinery
 import inspect
 
-from . import settings, hooks
-from lib import core
+import lib.core.settings as settings
+import lib.core.hooks as hooks
+import lib.core as core
+
 import lib.utils.creator as creator
 import lib.utils.reflection as refl
 
-class BaseScraper():
+class BaseSourceModule():
     def get_properties():
         pass
 
@@ -26,25 +34,28 @@ class BaseScraper():
                 raise ValueError(f"Invalid module property '{p}'")
 
 class Source:
-    def __init__(self, **kwargs):
-        self.id = kwargs.get("id", str(uuid.uuid4()))
-        self.name = kwargs.get("name", "New Source")
-#        self.url = kwargs.get("url", "")
-        self.module = kwargs.get("module")
-        self.module_properties = kwargs.get("module_properties")
+    def __init__(self,
+                id = None,
+                name = "New Source",
+                module = "",
+                module_properties = {}
+        ):
+
+        if id is None:
+            id =  creator.create_simple_id(core.get_sources())
+
+        self.id = id
+        self.name = name
+        self.module = module
+        self.module_properties = module_properties
 
     def __repr__(self):
-        return f"""id: {self.id}
+        return f"""
+id: {self.id}
 name:{self.name}
 module: {self.module}
-module_properties: {self.module_properties}"""
-
-    @staticmethod
-    def load(data):
-        values = data
-        #print(values)
-
-        return Source(**data)
+module_properties: {self.module_properties}
+"""
 
 def load_sources(file):
     if not os.path.exists(file):
@@ -61,44 +72,32 @@ def load_sources(file):
 
     return sources
 
-# looks for sub diretories inside "scrapers/"
+# looks for sub directories inside "module_dir/"
 # and inspects its contents for a "scraper.py" file and grabs the class inside that file
-# PARAMS: scraper_ads - json of all the previously scraped files
-# RETURNS: a dictionary {scraper_name : scraper_instance} 
-def load_modules(directory, scraper_dir):
+# PARAMS: directory - the working directory
+#         module_dir - the sub directory in directory where the modules can be found
+# RETURNS: a dictionary {module_name : module_instance} 
+def load_modules(directory, module_dir):
     result = {}
     filename = "scraper.py"
 
-    subdirs = refl.get_directories(f"{directory}/{scraper_dir}")
-    for subdir in subdirs:
-        scraper_name = subdir
-        path = f"{directory}/{scraper_dir}/{subdir}/{filename}"
+    subdirs = refl.get_directories(f"{directory}/{module_dir}")
+    for module_name in subdirs:
+        path = f"{directory}/{module_dir}/{module_name}/{filename}"
         if not os.path.exists(path):
             continue
 
-        namespace = refl.path_to_namespace(f"{scraper_dir}/{subdir}/{filename}")
+        namespace = refl.path_to_namespace(f"{module_dir}/{module_name}/{filename}")
         finder = machinery.PathFinder()
         spec = util.find_spec(f"{namespace}")
-        #spec = machinery.find_spec(f"{path}")
         module = util.module_from_spec(spec)
-#        sys.modules[module_name] = module
         spec.loader.exec_module(module)
 
-#        module = refl.get_module(namespace)
         module_class_name, module_class = refl.get_class(module, namespace)
-        result[subdir] = module_class()
+        result[module_name] = module_class()
 
     return result
 
-def list_sources_in_file(file):
-    list_sources(load_sources(file))
-
-def list_sources(sources):
-    i = 0
-    for t in sources:
-        print (f"[{i}]")
-        print_source(t)
-        i = i+1
 
 def save(*args, **kwargs):
     if (settings.get("data_mode") == settings.DATA_MODE_DB):
@@ -134,7 +133,17 @@ def save_yaml(sources, file, preserve_comments=True):
 
         yaml.dump(sources, stream, default_flow_style=False, sort_keys=False)
 
-def appnd_source_to_file(source, file):
+def list_sources_in_file(file):
+    list_sources(load_sources(file))
+
+def list_sources(sources):
+    i = 0
+    for t in sources:
+        print (f"[{i}]")
+        print_source(t)
+        i = i+1
+
+def append_source_to_file(source, file):
     sources = load_sources(file)
     sources.append(source)
     save_sources(sources, file)
@@ -149,24 +158,14 @@ def delete_source_from_file(index, file):
     save_sources(sources, file)
 
 def print_source(source):
-        print(f"""Name: {source.name}
+        print(f"""
+Name: {source.name}
 Source: {source.source}
 Frequency: {source.frequency} {source.frequency_unit}
 Url: {source.url}
 Include: {source.include}
 Exclude: {source.exclude}
 """)
-
-# <-- don't output yaml class tags
-def noop(self, *args, **kw):
-    pass
-
-yaml.emitter.Emitter.process_tag = noop
-# --------------------------------------->
-
-if __name__ == "__main__":
-    t = load_sources("sources.yaml")
-    save_sources(t, "sources.yaml", "sources.yaml")
 
 def source_creator(cur_sources, modules, file, edit_source=None):
     s = {}
@@ -179,7 +178,6 @@ def source_creator(cur_sources, modules, file, edit_source=None):
             s[f"prop_{p}"] = e.module_properties[p]
 
     while True:
-#        s["id"] = creator.prompt_id(creator.get_id_list(cur_sources), default = s.get("id", None))
         s["id"] = creator.create_simple_id(list(cur_sources))
         s["name"] = creator.prompt_string("Name", default=s.get("name", None))
         s["module"] = create_source_choose_module(modules, s.get("module", None))
@@ -197,7 +195,6 @@ def source_creator(cur_sources, modules, file, edit_source=None):
         for p in props:
             val = s[f"prop_{p}"]
             print(f"{p}: {val}")
-#        print("}")
         print ("-----------------------------")
 
         set_props = {}
@@ -237,26 +234,6 @@ def source_creator(cur_sources, modules, file, edit_source=None):
 
     cur_sources[s["id"]] = source
     save(cur_sources, file)
-
-def test_source(source, modules):
-    include = []
-    exclude = []
-
-    if creator.yes_no("Would you like to add inlcudes/excludes", "n") == "y":
-        include = creator.prompt_string("Include", allow_empty=True)
-        exclude = creator.prompt_string("Exclude", allow_empty=True)
-
-    module = modules[source.module]
-
-    core.scrape_source(
-            source,
-            [],
-            include=include,
-            exclude=exclude,
-            notify=False,
-            save_ads=False
-        )
-
 
 def create_source_choose_module(scrapers, default=None):
     default_str = ""
@@ -306,9 +283,8 @@ def edit_source(cur_sources, scrapers, file):
     else:
         create_source(cur_sources, scrapers, file, edit_source=source)
 
-def delete_source(sources_dict, sources_file, tasks_list, tasks_file):
+def delete_source(sources_dict, sources_file, tasks_dict, tasks_file):
     creator.print_title("Delete Source")
-    save = False
     changes_made = False
 
     while True:
@@ -317,18 +293,21 @@ def delete_source(sources_dict, sources_file, tasks_list, tasks_file):
             sources_list.append(sources_dict[s])
 
         for i in range(len(sources_list)):
-            print(f"{i} - {sources_list[i].name} [id: {sources_list[i].id}]")
+            print(f"{i} - {sources_list[i].name}")
 
         print ("s - save and quit")
         print ("q - quit without saving")
 
         tnum_str = creator.prompt_string("Delete source")
         if tnum_str == "s":
-            save = True
-            break
+            save(sources_dict, sources_file)
+            core.task.save(tasks_dict, tasks_file)
+            return
+
         elif tnum_str == "q":
             if changes_made and creator.yes_no("Quit without saving","n") == "y":
                 return
+
             elif not changes_made:
                 return
 
@@ -336,17 +315,69 @@ def delete_source(sources_dict, sources_file, tasks_list, tasks_file):
             tnum = int(tnum_str)
             if tnum >= 0 and tnum < len(sources_list):
                 if creator.yes_no(f"Delete {sources_list[tnum].name}", "y") == "y":
-                    do_delete_source(sources_list[tnum].id, sources_dict, tasks_list)
-                    changes_made = True
+                    used_by = get_tasks_using_source(sources_dict[sources_list[tnum].id], tasks_dict)
+                    if len(used_by) > 0:
+                        task_names = []
+                        for u in used_by:
+                            task_names.append(f"'{u.name}'")
 
-    if save:
-        save(sources_list, sources_file)
-        tasklib.save(tasks_list, tasks_file)
+                        print(f"Cannot delete source. It is being used by task(s): {','.join(task_names)}")
+                        print("Delete those tasks or remove this notification agent from them first before deleting.")
 
-def do_delete_source(id, sources_dict, tasks_list):
-    for t in tasks_list:
-        if id in t.source_ids:
-            t.source_ids.remove(id)
+                    else:
+                        do_delete_source(sources_list[tnum].id, sources_dict, tasks_dict)
+                        changes_made = True
 
-    del sources_dict[id]
+def get_tasks_using_source(source, tasks):
+    used_by = []
+
+    for id in tasks:
+        if source.id in tasks[id].source_ids:
+            used_by.append(tasks[id])
+
+    return used_by
+
+def do_delete_source(*args, **kwargs):
+    if settings.get("data_mode") == settings.DATA_MODE_DB:
+        do_delete_source_db(*args, **kwargs)
+
+    elif settings.get("data_mode") == settings.DATA_MODE_YAML:
+        do_delete_source_yaml(*args, **kwargs)
+
+def do_delete_source_db(id, sources, tasks):
+    for task_id in tasks:
+        task = tasks[task_id]
+        if id in task.source_ids:
+            task.source_ids.remove(id)
+
+    hooks.delete_source_model(sources[id])
+
+    del sources[id]
+
+def do_delete_source_yaml(id, sources, tasks):
+    for task_id in tasks:
+        task = tasks[task_id]
+        if id in task.source_ids:
+            task.source_ids.remove(id)
+
+    del sources[id]
+
+def test_source(source, modules):
+    include = []
+    exclude = []
+
+    if creator.yes_no("Would you like to add inlcudes/excludes", "n") == "y":
+        include = creator.prompt_string("Include", allow_empty=True)
+        exclude = creator.prompt_string("Exclude", allow_empty=True)
+
+    module = modules[source.module]
+
+    core.scrape_source(
+            source,
+            [],
+            include=include,
+            exclude=exclude,
+            notify=False,
+            save_ads=False
+        )
 
