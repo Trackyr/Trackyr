@@ -1,13 +1,10 @@
-from lib import core
-
 from copy import deepcopy
-
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
 
-#,from database import metadata, Job
-from trackyr.config import Config
+import lib.core as core
 
+from trackyr.config import Config
 from trackyr import models
 
 engine = create_engine(Config.SQLALCHEMY_DATABASE_URI)
@@ -53,12 +50,20 @@ def to_existing_task_model(core_task, task_model):
     c = core_task
     m = task_model
 
+    source_ids = []
+    if c.source_ids is not None and len(c.source_ids) > 0:
+        source_ids = c.source_ids[0]
+
+    notif_agent_ids = []
+    if c.notif_agent_ids is not None and len(c.notif_agent_ids) > 0:
+        notif_agent_ids = c.notif_agent_ids[0]
+
     m.name = c.name
     m.id = c.id
     m.frequency = c.frequency
     #m.frequency_unit = "minutes"
-    m.source = c.source_ids[0]
-    m.notification_agent = c.notif_agent_ids[0]
+    m.source = source_ids
+    m.notification_agent = notif_agent_ids
     m.must_contain = ",".join(c.include)
     m.exclude = ",".join(c.exclude)
 
@@ -117,6 +122,11 @@ def to_existing_notif_agent_model(core_notif_agent, notif_agent_model):
     m.webhook_url = c.module_properties["webhook"]
     m.username = c.module_properties["botname"]
 
+def delete_notif_agent_model(core_notif_agent):
+    notif_agent_model = session.query(models.NotificationAgent).get(core_notif_agent.id)
+    session.delete(notif_agent_model)
+
+
 def to_new_core_source(source_model):
     s = source_model
 
@@ -161,6 +171,10 @@ def to_existing_source_model(core_source, source_model):
     m.name = c.name
     m.module = module
     m.website = c.module_properties["url"]
+
+def delete_source_model(core_source):
+    source_model = session.query(models.Source).get(core_source.id)
+    session.delete(source_model)
 
 def load_core_tasks():
     task_models = session.query(models.Task).all()

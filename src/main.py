@@ -10,9 +10,9 @@ import json
 import inspect
 import argparse
 
-from lib.core import settings
-from lib import core
-from lib.utils import cron
+import lib.core as core
+import lib.core.settings as settings
+import lib.utils.cron as cron
 
 def main():
     parser = argparse.ArgumentParser()
@@ -84,7 +84,7 @@ def main():
         else:
             recent = args.notify_recent
 
-        core.task.prime_all(core.tasks, recent_ads=recent)
+        core.task.prime_all(core.get_tasks(), recent_ads=recent)
 
     elif args.refresh_cron:
         refresh_cron()
@@ -95,16 +95,16 @@ def main():
 
 def task_cmd(args):
     if args.task_cmd == "add":
-        core.task.create_task(core.tasks, core.sources, core.agents, core.tasks_file)
+        core.task.create_task(core.get_tasks(), core.get_sources(), core.get_notif_agents(), core.TASKS_FILE)
 
     elif args.task_cmd == "delete":
-        core.task.delete_task(core.tasks, core.tasks_file)
+        core.task.delete_task(core.get_tasks(), core.TASKS_FILE)
 
     elif args.task_cmd == "edit":
-        core.task.edit_task(core.tasks, core.sources, core.agents, core.tasks_file)
+        core.task.edit_task(core.get_tasks(), core.get_sources(), core.get_notif_agents(), core.TASKS_FILE)
 
     elif args.task_cmd == "list":
-        core.task.list_tasks(core.tasks)
+        core.task.list_tasks(core.get_tasks())
 
     else:
         raise ValueError(f"Unknown task command: {args.task_cmd}")
@@ -112,16 +112,16 @@ def task_cmd(args):
 
 def source_cmd(args):
     if args.source_cmd == "add":
-        core.source.create_source(core.sources, core.scrapers, core.sources_file)
+        core.source.create_source(core.get_sources(), core.get_source_modules(), core.SOURCES_FILE)
 
     elif args.source_cmd == "delete":
-        core.source.delete_source(core.sources, core.sources_file, core.tasks, core.tasks_file)
+        core.source.delete_source(core.get_sources(), core.SOURCES_FILE, core.get_tasks(), core.TASKS_FILE)
 
     elif args.source_cmd == "edit":
-        core.source.edit_source(core.sources, core.scrapers, core.sources_file)
+        core.source.edit_source(core.get_sources(), core.get_source_modules(), core.SOURCES_FILE)
 
     elif args.source_cmd == "list":
-        core.source.list(core.sources)
+        core.source.list(core.get_sources())
 
     else:
         raise ValueError(f"Unknown source command: {args.source_cmd}")
@@ -129,13 +129,13 @@ def source_cmd(args):
 
 def notif_agent_cmd(args):
     if args.notif_agent_cmd == "add":
-        core.notif_agent.create_notif_agent(core.agents, core.notif_agent_modules, core.notif_agents_file)
+        core.notif_agent.create_notif_agent(core.get_notif_agents(), core.get_notif_agent_modules(), core.NOTIF_AGENTS_FILE)
 
     elif args.notif_agent_cmd == "edit":
-        core.notif_agent.edit_notif_agent(core.agents, core.notif_agent_modules, core.notif_agents_file)
+        core.notif_agent.edit_notif_agent(core.get_notif_agents(), core.get_notif_agent_modules(), core.NOTIF_AGENTS_FILE)
 
     elif args.notif_agent_cmd == "delete":
-        core.notif_agent.delete_notif_agent(core.agents, core.notif_agents_file, core.tasks, core.tasks_file)
+        core.notif_agent.delete_notif_agent(core.get_notif_agents(), core.NOTIF_AGENTS_FILE, core.get_tasks(), core.TASKS_FILE)
 
     elif args.notif_agent_cmd == "list":
         core.notif_agent.list(core.notif_agents)
@@ -145,8 +145,9 @@ def notif_agent_cmd(args):
 
 def refresh_cron():
     cron.clear()
-    for id in core.tasks:
-        t = core.tasks[id]
+    tasks = core.get_tasks()
+    for id in tasks:
+        t = tasks[id]
         if cron.exists(t.frequency, t.frequency_unit):
             continue
 

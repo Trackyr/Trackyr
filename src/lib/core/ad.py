@@ -1,4 +1,5 @@
-from lib.utils import logger as log
+import os
+import lib.utils.logger as log
 
 import yaml
 import json

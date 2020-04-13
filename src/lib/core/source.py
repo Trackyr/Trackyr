@@ -6,7 +6,6 @@ import subprocess
 import re
 import uuid
 
-
 import yaml
 # don't output yaml class tags
 def noop(self, *args, **kw):
@@ -17,8 +16,10 @@ yaml.emitter.Emitter.process_tag = noop
 from importlib import util, machinery
 import inspect
 
-from . import settings, hooks
-from lib import core
+import lib.core.settings as settings
+import lib.core.hooks as hooks
+import lib.core as core
+
 import lib.utils.creator as creator
 import lib.utils.reflection as refl
 
@@ -34,11 +35,14 @@ class BaseSourceModule():
 
 class Source:
     def __init__(self,
-                id = creator.create_simple_id(core.sources),
+                id = None,
                 name = "New Source",
                 module = "",
                 module_properties = {}
         ):
+
+        if id is None:
+            id =  creator.create_simple_id(core.get_sources())
 
         self.id = id
         self.name = name
@@ -279,9 +283,8 @@ def edit_source(cur_sources, scrapers, file):
     else:
         create_source(cur_sources, scrapers, file, edit_source=source)
 
-def delete_source(sources_dict, sources_file, tasks_list, tasks_file):
+def delete_source(sources_dict, sources_file, tasks_dict, tasks_file):
     creator.print_title("Delete Source")
-    save = False
     changes_made = False
 
     while True:
@@ -290,18 +293,21 @@ def delete_source(sources_dict, sources_file, tasks_list, tasks_file):
             sources_list.append(sources_dict[s])
 
         for i in range(len(sources_list)):
-            print(f"{i} - {sources_list[i].name} [id: {sources_list[i].id}]")
+            print(f"{i} - {sources_list[i].name}")
 
         print ("s - save and quit")
         print ("q - quit without saving")
 
         tnum_str = creator.prompt_string("Delete source")
         if tnum_str == "s":
-            save = True
-            break
+            save(sources_dict, sources_file)
+            core.task.save(tasks_dict, tasks_file)
+            return
+
         elif tnum_str == "q":
             if changes_made and creator.yes_no("Quit without saving","n") == "y":
                 return
+
             elif not changes_made:
                 return
 
@@ -309,19 +315,52 @@ def delete_source(sources_dict, sources_file, tasks_list, tasks_file):
             tnum = int(tnum_str)
             if tnum >= 0 and tnum < len(sources_list):
                 if creator.yes_no(f"Delete {sources_list[tnum].name}", "y") == "y":
-                    do_delete_source(sources_list[tnum].id, sources_dict, tasks_list)
-                    changes_made = True
+                    used_by = get_tasks_using_source(sources_dict[sources_list[tnum].id], tasks_dict)
+                    if len(used_by) > 0:
+                        task_names = []
+                        for u in used_by:
+                            task_names.append(f"'{u.name}'")
 
-    if save:
-        save(sources_list, sources_file)
-        tasklib.save(tasks_list, tasks_file)
+                        print(f"Cannot delete source. It is being used by task(s): {','.join(task_names)}")
+                        print("Delete those tasks or remove this notification agent from them first before deleting.")
 
-def do_delete_source(id, sources_dict, tasks_list):
-    for t in tasks_list:
-        if id in t.source_ids:
-            t.source_ids.remove(id)
+                    else:
+                        do_delete_source(sources_list[tnum].id, sources_dict, tasks_dict)
+                        changes_made = True
 
-    del sources_dict[id]
+def get_tasks_using_source(source, tasks):
+    used_by = []
+
+    for id in tasks:
+        if source.id in tasks[id].source_ids:
+            used_by.append(tasks[id])
+
+    return used_by
+
+def do_delete_source(*args, **kwargs):
+    if settings.get("data_mode") == settings.DATA_MODE_DB:
+        do_delete_source_db(*args, **kwargs)
+
+    elif settings.get("data_mode") == settings.DATA_MODE_YAML:
+        do_delete_source_yaml(*args, **kwargs)
+
+def do_delete_source_db(id, sources, tasks):
+    for task_id in tasks:
+        task = tasks[task_id]
+        if id in task.source_ids:
+            task.source_ids.remove(id)
+
+    hooks.delete_source_model(sources[id])
+
+    del sources[id]
+
+def do_delete_source_yaml(id, sources, tasks):
+    for task_id in tasks:
+        task = tasks[task_id]
+        if id in task.source_ids:
+            task.source_ids.remove(id)
+
+    del sources[id]
 
 def test_source(source, modules):
     include = []

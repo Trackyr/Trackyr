@@ -4,13 +4,13 @@ import subprocess
 import re
 import uuid
 
-from lib.core import settings
+import lib.core.settings as settings
 import lib.utils.logger as log
 
-from lib.utils import cron
-from lib.core import hooks
+import lib.utils.cron as cron
+import lib.core.hooks as hooks
 import lib.utils.creator as creator
-from lib import core
+import lib.core as core
 
 import yaml
 # don't output yaml class tags
@@ -65,6 +65,23 @@ exclude: {self.exclude}
     # unit: "minutes" | "hours"
     def matches_freq(self, time, unit):
         return time == self.frequency and unit[:1] == self.frequency_unit[:1]
+
+def validate(task, sources, notif_agents, stay_alive = True):
+    for s in task.source_ids:
+        if not s in sources:
+            if stay_alive:
+                task.source_ids.remove(s)
+                log.warning_print(f"Source not found: '{s}'. Removing from task '{task.id} - {task.name}'")
+            else:
+                raise ValueError(f"Error validating task '{task.id} - {task.name}': Source '{s}' not found")
+
+    for n in task.notif_agent_ids:
+        if not n in notif_agents:
+            if stay_alive:
+                task.notif_agent_ids.remove(s)
+                log.warning_print(f"Notification agent not found: '{s}'. Removing from task '{task.id} - {task.name}'")
+            else:
+                raise ValueError(f"Error validating task '{task.id} - {task.name}': Notification Agent '{s}' not found")
 
 def prime(task, notify=True, recent_ads = 3):
     if recent_ads > 0:
@@ -141,6 +158,8 @@ def task_creator(cur_tasks, sources, notif_agents, file, edit_task=None):
         t = {}
         if edit_task:
             e = edit_task
+            validate(e, sources, notif_agents)
+
             old_task_name = e.name
             t["id"] = e.id
             t["name"] = e.name
@@ -202,7 +221,7 @@ def task_creator(cur_tasks, sources, notif_agents, file, edit_task=None):
                 elif confirm == "dryrun":
                     if creator.yes_no("Execute dry run?", "y"):
                         log.debug_print("Executing dry run...")
-                        core.run_task(task, notify=notify, recent_ads=recent_adps)
+                        core.run_task(task, notify=False, save_ads=False)
 
                     continue
                 else:
@@ -244,23 +263,21 @@ def task_creator(cur_tasks, sources, notif_agents, file, edit_task=None):
         """
 
         if creator.yes_no("Prime this task?", "y") == "y":
-            recent = creator.prompt_num("How many of the latest ads do you want notified?", default="3")
-            if recent_ads==0:
+            recent = int(creator.prompt_num("How many of the latest ads do you want notified?", default="3"))
+            if recent == 0:
                 notify=False
             else:
                 notify=True
 
-            prime(task, notify=notify, recent_ads=int(recent))
+            prime(task, notify=notify, recent_ads=recent)
 
         if not cron.exists(task.frequency, task.frequency_unit):
-            if creator.yes_no(f"Add cronjob for '{task.frequency} {task.frequency_unit}'", "y"):
+            if creator.yes_no(f"Add cronjob for '{task.frequency} {task.frequency_unit}'", "y") == "y":
                 cron.clear()
                 for task_id in cur_tasks:
                     task = cur_tasks[task_id]
-                    #if not cron.exists(t.frequency, task.frequency_unit):
-                        #cron.add(task.frequency, task.frequency_unit)
                     cron.add(task.frequency, task.frequency_unit)
-                    print (f"adding: {task}")
+
         else:
             print (f"Cronjob already exists for '{task.frequency} {task.frequency_unit}'... skipping")
 
@@ -474,6 +491,7 @@ def delete_task(tasks, file):
 def do_delete_task(*args, **kwargs):
     if (settings.get("data_mode") == settings.DATA_MODE_DB):
         do_delete_task_db(args[0], args[1])
+
     elif (settings.get("data_mode") == settings.DATA_MODE_YAML):
         do_delete_task_yaml(args[0], args[1])
 
