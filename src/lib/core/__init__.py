@@ -183,7 +183,7 @@ def scrape_source(
 # -c {cron_time} {cron_unit}
 # cron_time: integer
 # cron_unit: string [ minute | hour ]
-def cron(cron_time, cron_unit, notify=True, force_tasks=False, force_agents=False, recent_ads=settings.get("recent_ads")): 
+def cron(cron_time, cron_unit, notify=True, force_tasks=False, force_agents=False, recent_ads=3):
     log.add_handler("CRON_HANDLER")
 
     log.info_print(f"Running cronjob for schedule: {cron_time} {cron_unit}")
