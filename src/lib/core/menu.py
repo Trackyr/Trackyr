@@ -57,6 +57,11 @@ def tasks():
         elif option == "list":
             task.list_tasks(core.get_tasks())
 
+        elif option == "test":
+            task.choose_task(
+                msg = "TEST",
+            )
+
         elif option == "back to menu":
             return
 
