@@ -14,6 +14,8 @@ import lib.core as core
 import lib.core.settings as settings
 import lib.utils.cron as cron
 
+import lib.core.menu as menu
+
 def main():
     parser = argparse.ArgumentParser()
     notify_group = parser.add_mutually_exclusive_group()
@@ -90,8 +92,7 @@ def main():
         refresh_cron()
 
     else:
-        print ("Must specificy command or argument.")
-        parser.print_help()
+        menu.start()
 
 def task_cmd(args):
     if args.task_cmd == "add":

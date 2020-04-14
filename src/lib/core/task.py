@@ -153,63 +153,34 @@ def delete_task_from_file(index, file):
     del(tasks[index])
     save_tasks(tasks, file)
 
-def task_creator(cur_tasks, sources, notif_agents, file, edit_task=None):
+def task_creator(task, cur_tasks, sources, notif_agents, file):
+    t = task
+
     while True:
-        t = {}
-        if edit_task:
-            e = edit_task
-            validate(e, sources, notif_agents)
-
-            old_task_name = e.name
-            t["id"] = e.id
-            t["name"] = e.name
-            t["freq"] = e.frequency
-            t["frequ"] = e.frequency_unit
-            t["sources"] = e.source_ids
-
-            if len(e.include) == 0 or e.include[0] == "":
-                t["include"] = ""
-            else:
-                t["include"] = ",".join(e.include)
-
-            if len(e.exclude) == 0 or e.exclude[0] == "":
-                t["exclude"] = ""
-            else:
-                t["exclude"] = ",".join(e.exclude)
-
-            t["notif_agents"] = e.notif_agent_ids
-
         while True:
-            t["id"] = creator.create_simple_id(list(cur_tasks))
-            t["name"] = creator.prompt_string("Name", default=t.get("name", None))
-            t["freq"] = creator.prompt_num("Frequency", default=t.get("freq", 15))
-            t["frequ"] = creator.prompt_options("Frequency Unit", ["minutes", "hours"], default=t.get("frequ", "minutes"))
-            t["sources"] = create_task_add_sources(sources, default=t.get("sources", None))
-            t["include"] = creator.prompt_string("Include [list seperated by commas]", allow_empty=True, default=t.get("include", None))
-            t["exclude"] = creator.prompt_string("Exclude [list seperated by commas]", allow_empty=True, default=t.get("exclude", None))
-            t["notif_agents"] = create_task_add_notif_agents(notif_agents, default=t.get("notif_agents", None))
+            t.name = creator.prompt_string("Name", default=t.name)
+            t.frequency = creator.prompt_num("Frequency", default=t.frequency)
+            t.frequency_unit = creator.prompt_options("Frequency Unit", ["minutes", "hours"], default=t.frequency_unit)
+            t.source_ids = create_task_add_sources(sources, default=t.source_ids)
+            if t.source_ids == None:
+                return
+            t.include = creator.prompt_string("Include [list seperated by commas]", allow_empty=True, default=t.include)
+            t.exclude = creator.prompt_string("Exclude [list seperated by commas]", allow_empty=True, default=t.exclude)
+            t.notif_agent_ids = create_task_add_notif_agents(notif_agents, default=t.notif_agent_ids)
+            if t.notif_agent_ids == None:
+                return
 
             print()
-            print(f"Name: {t['name']}")
-            print(f"Frequency: {t['freq']} {t['frequ']}")
+            print(f"Name: {t.name}")
+            print(f"Frequency: {t.frequency} {t.frequency_unit}")
             print(f"Sources")
             print(f"----------------------------")
-            for s in t["sources"]:
-                print(f"{sources[s].name}")
+            print(sources)
+            for source_id in t.source_ids:
+                print(f"{sources[source_id].name}")
             print("-----------------------------")
-            print(f"Include: {t['include']}")
-            print(f"Exclude: {t['exclude']}")
-
-            task = Task(
-                id = t["id"],
-                name = t["name"],
-                frequency = t["freq"],
-                frequency_unit = t["frequ"],
-                source_ids = t["sources"],
-                include = t["include"].split(","),
-                exclude = t["exclude"].split(","),
-                notif_agent_ids = t["notif_agents"]
-            )
+            print(f"Include: {t.include}")
+            print(f"Exclude: {t.exclude}")
 
             while True:
                 confirm = creator.prompt_options("Choose an option", ["save", "edit", "dryrun", "quit"])
@@ -232,35 +203,8 @@ def task_creator(cur_tasks, sources, notif_agents, file, edit_task=None):
             elif confirm == "edit":
                 continue
 
-
-
-        if edit_task is None:
-            cur_tasks[task.id] = task
-        else:
-            e = edit_task
-            e.id = t["id"]
-            e.name = t["name"]
-            e.frequency = t["freq"]
-            e.frequency_unit = t["frequ"]
-            e.source_ids = t["sources"]
-            e.include = t["include"].split(",")
-            e.exclude = t["exclude"].split(",")
-            e.notif_agent_ids = t["notif_agents"]
-            task = edit_task
-
+        cur_tasks[task.id] = task
         save(cur_tasks, file)
-
-        """
-        if creator.yes_no("Test this task with a dry run", "y") == "y":
-            while True:
-                dry_run(task)
-
-                confirm = creator.yes_no("Do you want to go back and edit this task")
-                if confirm == "y":
-                    continue
-                elif confirm == "n":
-                    break
-        """
 
         if creator.yes_no("Prime this task?", "y") == "y":
             recent = int(creator.prompt_num("How many of the latest ads do you want notified?", default="3"))
@@ -275,8 +219,8 @@ def task_creator(cur_tasks, sources, notif_agents, file, edit_task=None):
             if creator.yes_no(f"Add cronjob for '{task.frequency} {task.frequency_unit}'", "y") == "y":
                 cron.clear()
                 for task_id in cur_tasks:
-                    task = cur_tasks[task_id]
-                    cron.add(task.frequency, task.frequency_unit)
+                    add_task = cur_tasks[task_id]
+                    cron.add(add_task.frequency, add_task.frequency_unit)
 
         else:
             print (f"Cronjob already exists for '{task.frequency} {task.frequency_unit}'... skipping")
@@ -454,7 +398,7 @@ def create_task(cur_tasks, sources, notif_agents, file):
         return
 
     creator.print_title("Add Task")
-    task_creator(cur_tasks, sources, notif_agents, file, edit_task=None)
+    task_creator(Task(), cur_tasks, sources, notif_agents, file)
 
 def edit_task(cur_tasks, sources, notif_agents, file):
     creator.print_title("Edit Task")
@@ -462,7 +406,7 @@ def edit_task(cur_tasks, sources, notif_agents, file):
     if task == "d":
         return
     else:
-        task_creator(cur_tasks, sources, notif_agents, file, task)
+        task_creator(task, cur_tasks, sources, notif_agents, file)
 
 def delete_task(tasks, file):
     creator.print_title("Delete Task")

@@ -158,69 +158,47 @@ def save_yaml(notif_agents, file, preserve_comments=False):
 
         yaml.dump(notif_agents, stream, default_flow_style=False, sort_keys=False)
 
-def notif_agent_creator(cur_notif_agents, modules, file, edit_notif_agent=None):
-    n = {}
-    if edit_notif_agent is not None:
-        e = edit_notif_agent
-        old_name = e.name
-        n["id"] = e.id
-        n["name"] = e.name
-        n["module"] = e.module
-        for p in e.module_properties:
-            n[f"prop_{p}"] = e.module_properties[p]
+def notif_agent_creator(notif_agent, cur_notif_agents, modules, file):
+    n = notif_agent
 
     while True:
-        n["id"] = creator.create_simple_id(list(cur_notif_agents))
-        n["name"] = creator.prompt_string("Name", default=n.get("name", None))
+        n.name = creator.prompt_string("Name", default=n.name)
+        n.module = create_notif_agent_choose_module(modules, n.module)
 
-        n["module"] = create_notif_agent_choose_module(modules, default=n.get("module", None))
-        module = modules[n["module"]]
+        module = modules[n.module]
         props = module.get_properties()
 
         print("Module Properties")
 
         for p in props:
-            default = n.get(f"prop_{p}", None)
+            default = None
+            if n.module_properties is not None:
+                default = n.module_properties.get(p, None)
             while True:
-                n[f"prop_{p}"] = creator.prompt_string(f"{p}", default=default)
-                is_valid, error_msg = module.is_property_valid(p, n[f"prop_{p}"])
+
+                n.module_properties[p] = creator.prompt_string(f"{p}", default=default)
+                is_valid, error_msg = module.is_property_valid(
+                                            p,
+                                            n.module_properties[p])
+
                 if is_valid:
                     break
                 else:
                     print (error_msg)
                     default = None
         print()
-        print(f"Id: {n['id']}")
-        print(f"Name: {n['name']}")
-        print(f"Module: {n['module']}")
+        print(f"Id: {n.id}")
+        print(f"Name: {n.name}")
+        print(f"Module: {n.module}")
         print ("-----------------------------")
         for p in props:
-            val = n[f"prop_{p}"]
-            print(f"{p}: {val}")
+            print(f"{p}: {n.module_properties[p]}")
         print ("-----------------------------")
-
-        set_props = {}
-        for p in props:
-            set_props[p] = n[f"prop_{p}"]
-
-        if edit_notif_agent is None:
-            save_notif_agent = NotifAgent(
-                id=n["id"],
-                name=n["name"],
-                module=n["module"],
-                module_properties=set_props
-            )
-        else:
-            edit_notif_agent.id = n["id"]
-            edit_notif_agent.name = n["name"]
-            edit_notif_agent.module = n["module"]
-            edit_notif_agent.module_properties=set_props
-            save_notif_agent = edit_notif_agent
 
         while True:
             confirm = creator.prompt_options("Choose an option", ["save","edit","test","quit"])
             if confirm == "test":
-                test_notif_agent(save_notif_agent, modules)
+                test_notif_agent(notif_agent, modules)
                 continue
             else:
                 break
@@ -232,12 +210,13 @@ def notif_agent_creator(cur_notif_agents, modules, file, edit_notif_agent=None):
         elif confirm == "quit":
             return
 
-    cur_notif_agents[n["id"]] = save_notif_agent
+    cur_notif_agents[n.id] = notif_agent
+
     save(cur_notif_agents, file)
 
-def create_notif_agent(cur_notif_agents, modules, file, edit_notif_agent=None):
+def create_notif_agent(cur_notif_agents, modules, file):
     creator.print_title("Add Notification Agent")
-    notif_agent_creator(cur_notif_agents, modules, file, edit_notif_agent=edit_notif_agent)
+    notif_agent_creator(NotifAgent(), cur_notif_agents, modules, file)
 
 def edit_notif_agent(cur_notif_agents, modules, file):
     creator.print_title("Edit Notification Agent")
@@ -245,7 +224,7 @@ def edit_notif_agent(cur_notif_agents, modules, file):
     if notif_agent == "d":
         return
     else:
-        create_notif_agent(cur_notif_agents, modules, file, edit_notif_agent=notif_agent)
+        notif_agent_creator(notif_agent, cur_notif_agents, modules, file)
 
 def delete_notif_agent(notif_agents_dict, notif_agents_file, tasks_dict, tasks_file):
     creator.print_title("Delete Notification Agent")
@@ -283,10 +262,13 @@ def delete_notif_agent(notif_agents_dict, notif_agents_file, tasks_dict, tasks_f
                         task_names = []
                         for u in used_by:
                             task_names.append(f"'{u.name}'")
+
                         print(f"Cannot delete notification agent '{notif_agents_list[tnum].name}'. It is being used by: {','.join(task_names)}")
                         print("Delete tasks using this notification agent or remove this notification agent from those tasks first before deleting.")
-                    do_delete_notif_agent(notif_agents_list[tnum].id, notif_agents_dict, tasks_dict)
-                    changes_made = True
+
+                    else:
+                        do_delete_notif_agent(notif_agents_list[tnum].id, notif_agents_dict, tasks_dict)
+                        changes_made = True
 
 def get_tasks_using_notif_agent(notif_agent, tasks):
     result = []

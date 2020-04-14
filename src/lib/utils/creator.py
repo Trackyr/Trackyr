@@ -1,5 +1,6 @@
 import uuid
 import re
+from copy import deepcopy
 
 import lib.utils.logger as log
 import lib.core as core
@@ -62,21 +63,43 @@ def prompt_range(msg, min, max, default=None, extra_options=None, allow_abbrev=T
             if num >= min and num <= max:
                 return num
 
-def prompt_options(msg, options, default=None, print_options=True, case_sens=False, allow_abbrev=True):
-    default_str = ""
+def prompt_options(
+        msg,                        # the input message
+        options,                    # the available options as list: ["option1", "option2", option3"]
+        default=None,               # the default option to use when enter is pressed without anything being inputted
+        enable_default=True,        # enable the use default entry
+        print_options=True,         # print the options with the message: Some Message [option1/option2/option3]:]
+        print_options_lower=False,  # print the options to lower if they are not case sensitive
+        case_sens=False,            # are options case sensitive
+        allow_abbrev=True,          # allow abbrevations as input for options: option = opt or opti or optio. fails if there are several options that match
+        menu_style=False,           # do LORD style menu printing with vertical menus
+        menu_title=None             # what to show at the top of the prompt before showing the options
+    ):
 
-    if default is not None:
+    default_str = ""
+    if enable_default and default is not None:
         default_str = f" [{default}]"
 
-    if case_sens == False:
+    options_str = deepcopy(options)
+    if case_sens == False and print_options_lower:
         for i in range(len(options)):
-            options[i] = options[i].lower()
+            options_str[i] = options_str[i].lower()
 
-    choices = "/".join(options)
+    if print_options:
+        choices = f" [{'/'.join(options_str)}]"
+    else:
+        choices = ""
 
     result = None
     while True:
-        result = input(f"{msg} [{choices}]:{default_str} ")
+        if menu_style:
+            print()
+            print(menu_title)
+            for o in options:
+                print(o)
+
+        result = input(f"{msg}{choices}:{default_str} ")
+
         check = result
 
         if result == "":
@@ -92,6 +115,9 @@ def prompt_options(msg, options, default=None, print_options=True, case_sens=Fal
             found = None
             ambiguous = False
             for o in options:
+                if not case_sens:
+                    o = o.lower()
+
                 if re.match(check, o):
                     if found is not None:
                         print(f"{check} is too ambiguous, try a longer abbreviation")
@@ -100,7 +126,7 @@ def prompt_options(msg, options, default=None, print_options=True, case_sens=Fal
 
                     found = o
 
-            if not ambiguous:
+            if not ambiguous and found is not None:
                 return found
         else:
             if check in options:
