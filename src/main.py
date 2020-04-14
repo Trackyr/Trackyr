@@ -62,6 +62,10 @@ def main():
 
     args = parser.parse_args()
 
+    notify_recent = settings.get("recent_ads")
+    if args.notify_recent is not None:
+        notify_recent = args.notify_recent
+
     if args.cron_job:
         core.cron(
             args.cron_job[0],
@@ -69,7 +73,8 @@ def main():
             notify=not args.skip_notification,
             force_tasks=args.force_tasks,
             force_agents=args.force_notification_agents,
-            recent_ads=args.notify_recent)
+            recent_ads=notify_recent
+        )
 
     elif args.cmd == "task":
         task_cmd(args)
@@ -81,12 +86,7 @@ def main():
         notif_agent_cmd(args)
 
     elif args.prime_all_tasks:
-        if args.notify_recent is None:
-            recent = 3
-        else:
-            recent = args.notify_recent
-
-        core.task.prime_all(core.get_tasks(), recent_ads=recent)
+        core.task.prime_all(core.get_tasks(), recent_ads=notify_recent)
 
     elif args.refresh_cron:
         refresh_cron()
