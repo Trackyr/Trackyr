@@ -40,13 +40,22 @@ def tasks():
         )
 
         if option == "new":
-            task.task_creator(core.get_tasks(), core.get_sources(), core.get_notif_agents(), core.TASKS_FILE)
+            task.task_creator(
+                task.Task(),
+                core.get_tasks(),
+                core.get_sources(),
+                core.get_notif_agents(),
+                core.TASKS_FILE
+            )
 
         elif option == "edit":
             task.edit_task(core.get_tasks(), core.get_sources(), core.get_notif_agents(), core.TASKS_FILE)
 
         elif option == "delete":
             task.delete_task(core.get_tasks(), core.TASKS_FILE)
+
+        elif option == "list":
+            task.list_tasks(core.get_tasks())
 
         elif option == "back to menu":
             return
@@ -69,7 +78,7 @@ def sources():
 
         elif option == "new":
             source.source_creator(
-                Source(),
+                source.Source(),
                 core.get_sources(),
                 core.get_source_modules(),
                 core.SOURCES_FILE
@@ -106,6 +115,7 @@ def notif_agents():
 
         if option == "new":
             notif_agent.notif_agent_creator(
+                notif_agent.NotifAgent(),
                 core.get_notif_agents(),
                 core.get_notif_agent_modules(), 
                 core.NOTIF_AGENTS_FILE
@@ -138,3 +148,4 @@ def title(title):
 
 def msg(msg):
     return f"---------------------\n{msg}"
+

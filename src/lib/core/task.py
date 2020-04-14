@@ -22,16 +22,19 @@ yaml.emitter.Emitter.process_tag = noop
 
 class Task:
     def __init__(self,
-            id = uuid.uuid4(),
+            id = None,
             name = "New Task",
             enabled = True,
             frequency = 15,
             frequency_unit = "minutes",
-            source_ids = [],
-            notif_agent_ids = [],
-            include = [],
-            exclude = []
+            source_ids = None,
+            notif_agent_ids = None,
+            include = None,
+            exclude = None
         ):
+
+        if id is None:
+            id = creator.create_simple_id(core.get_tasks())
 
         self.id = id
         self.name = name
@@ -44,13 +47,23 @@ class Task:
         self.exclude = exclude
 
     def __repr__(self):
+        source_names = []
+        sources = core.get_sources()
+        for id in self.source_ids:
+            source_names.append(f"'{sources[id].name}'")
+
+        notif_agent_names = []
+        notif_agents = core.get_notif_agents()
+        for id in self.notif_agent_ids:
+            notif_agent_names.append(f"'{notif_agents[id].name}'")
+
         return f"""
-name:{self.name}
+name: {self.name}
 frequency: {self.frequency} {self.frequency_unit}
-source_ids: {self.source_ids}
-notif_agent_ids: {self.notif_agent_ids}
-include: {self.include}
-exclude: {self.exclude}
+sources: {','.join(source_names)}
+notification agents: {','.join(notif_agent_names)}
+include: {','.join(self.include)}
+exclude: {','.join(self.exclude)}
 """
 
     # freq: int
@@ -408,8 +421,16 @@ def edit_task(cur_tasks, sources, notif_agents, file):
     else:
         task_creator(task, cur_tasks, sources, notif_agents, file)
 
-def delete_task(tasks, file):
-    creator.print_title("Delete Task")
+def choose_task(
+        msg,
+        title,
+        tasks,
+        file,
+        options_dict = None,
+        confirm_msg = None
+    ):
+
+    creator.print_title(title)
 
     while True:
         tasks_list = list(tasks.values())
@@ -417,20 +438,63 @@ def delete_task(tasks, file):
         for i in range(len(tasks_list)):
             print(f"{i} - {tasks_list[i].name}")
 
-        print("s - save")
-        print("q - quit without saving")
-        tnum_str = creator.prompt_string("Delete task")
-        if tnum_str == "s":
-            save(tasks, file)
-            return
-        elif tnum_str == "q":
-            return
+        if options_dict is not None:
+            for o in options_dict:
+                print(f"{o} - {options_dict[o]}")
 
-        if re.match("[0-9]+$", tnum_str):
-            tnum = int(tnum_str)
-            if tnum >= 0 and tnum < len(tasks):
-                if creator.yes_no(f"Are you sure you want to delete {tasks_list[tnum].name}") == "y":
-                    do_delete_task(tasks_list[tnum].id, tasks)
+        tnum_str = creator.prompt_string(msg)
+
+        if options_dict is not None:
+            for o in options_dict:
+                if re.match(tnum_str, o):
+                    return o
+
+        if not re.match("[0-9]+$", tnum_str):
+            continue
+
+        tnum = int(tnum_str)
+        if tnum < 0 and tnum >= len(tasks):
+            continue
+
+        task = tasks_list[tnum]
+
+        if confirm_msg is not None:
+            if creator.yes_no(format_task_string(confirm_msg, task)) == "n":
+                continue
+
+        return tasks_list[tnum]
+
+
+def format_task_string(string, task):
+    while True:
+        m = re.findall("([{][^}]*[}])", string)
+        if m is None or len(m) == 0:
+            break
+
+        attr = re.search("[^{][^}]*", m[0]).group(0)
+        string = re.sub(m[0], getattr(task, attr), string)
+
+    return string
+
+def delete_task(tasks, file):
+    option = choose_task(
+                "Choose an option",
+                "Delete Task",
+                tasks,
+                file,
+                options_dict = {"s":"save","q":"quit"},
+                confirm_msg = "Are you sure you want to delete {name}"
+    )
+
+    if option == "s":
+        save(tasks, file)
+        return
+
+    elif option == "q":
+        return
+
+    elif isinstance(option, Task):
+        do_delete_task(option, tasks)
 
 def do_delete_task(*args, **kwargs):
     if (settings.get("data_mode") == settings.DATA_MODE_DB):
