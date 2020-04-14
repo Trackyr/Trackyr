@@ -3,8 +3,9 @@
 # global_exclude: a global exclude that spans across all tasks
 # recent_ads: only display the most recent number of ads 
 #             to prevent a large notification dump
+data_mode: DB
 global_exclude: []
 global_include: []
-log_data_mode: INFO
+log_mode: INFO
 log_rotation_files: 5
 recent_ads: 3
