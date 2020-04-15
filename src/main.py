@@ -36,6 +36,8 @@ def main():
     main_args.add_argument("-p", "--prime-all-tasks", action="store_true", help="Prime all tasks. If tasks file was edited manually, prime all the ads to prevent large notification dump")
     main_subparsers = parser.add_subparsers(dest="cmd")
 
+    menu_sub = main_subparsers.add_parser("menu", help="Convenient menu for setup")
+
     task_sub = main_subparsers.add_parser("task")
     task_subparsers = task_sub.add_subparsers(dest="task_cmd")
     task_subparsers.required = True
@@ -59,6 +61,7 @@ def main():
     notif_agent_delete = notif_agent_subparsers.add_parser("delete", help="Delete a new notif_agent")
     notif_agent_edit = notif_agent_subparsers.add_parser("edit", help="Edit a new notif_agent")
     notif_agent_list = source_subparsers.add_parser("list", help="List all notification agents")
+
 
     args = parser.parse_args()
 
@@ -85,6 +88,9 @@ def main():
     elif args.cmd == "notification-agent":
         notif_agent_cmd(args)
 
+    elif args.cmd == "menu":
+        menu.start()
+
     elif args.prime_all_tasks:
         core.task.prime_all(core.get_tasks(), recent_ads=notify_recent)
 
@@ -92,7 +98,7 @@ def main():
         refresh_cron()
 
     else:
-        menu.start()
+        parser.print_help()
 
 def task_cmd(args):
     if args.task_cmd == "add":
