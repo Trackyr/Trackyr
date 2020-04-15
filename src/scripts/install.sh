@@ -1,54 +1,201 @@
 #!/bin/bash
+USERVAR=$(whoami)
+TRACKYR_GIT_PATH="https://github.com/Trackyr/Trackyr.git"
+TRACKYR_LOCAL_PATH="/etc/Trackyr"
+TRACKYR_CONFIG_PATH="/etc/trackyr-config.json"
+PRIVATE_IP=$(ifconfig | grep -Eo 'inet (addr:)?([0-9]*\.){3}[0-9]*' | grep -Eo '([0-9]*\.){3}[0-9]*' | grep -v '127.0.0.1')
 
-uservar=$(whoami)
+GREEN='\033[0;32m'
+ORANGE='\033[;33m'
+RED='\033[0;31m'
+NC='\033[0m'
+
+echo "                                                                                                                                       "
+echo "#######################################################################################################################################"
+echo "#                                                          TRACKYR INSTALLER                                                          #"
+echo "#                                                  https://github.com/Trackyr/Trackyr                                                 #"
+echo "#    A self-hostable open sourced scraper of online classifieds. Customize your sources and your notification agents to search the    #"
+echo "#                                      website(s) you want, and get notified the way(s) you want!                                     #"
+echo "#                                                                                                                                     #"
+echo "#   This script has been designed to be a single execution for a complete setup. If you would like to check which packages are being  #"
+echo "#     automatically installed, which paths are being used, etc. then please use CTRL+C to stop the script now. You can review the     #"
+echo "#                     contents at https://raw.githubusercontent.com/Trackyr/Trackyr/master/src/scripts/install.sh                     #"
+echo "#######################################################################################################################################"
+echo "                                                                                                                                       "
+
+sleep 15
+
+printf "${ORANGE}During this installation script, we will be creating a postgresql user to create the database.\n"
+printf "${ORANGE}For this user, we need you to provide a password so that Trackyr can talk to the database. \n"
+printf "${ORANGE}You will likely not use this password in the future unless you are going into postgresql cli.${NC}\n"
+read -sp 'Password (will not show response while typing): ' USERPASS
+
+printf "\n\n"
 
 # update server
+printf "${GREEN}[> START <]   Updating and Upgrading System Packages${NC}\n"
+sleep 1
+
 sudo apt -q update
 sudo apt -q upgrade -y
 
+sleep 1
+printf "${RED}[> END <]   Updating and Upgrading System Packages${NC}\n"
+
+
+
+sleep 2.5
+echo ""
+
+
+
 # install all necessary packages
+printf "${GREEN}[> START <]   Installing necessary packages${NC}\n"
+sleep 1
+
 sudo apt -q install git python3 python3-pip python3-bs4 python3-flask postgresql postgresql-contrib -y
 
+sleep 1
+printf "${RED}[> END <]   Installing necessary packages${NC}\n"
+
+
+
+sleep 2.5
+echo ""
+
+
+
 # clone github repo
-sudo git clone https://github.com/Trackyr/Trackyr.git /home/$uservar/Trackyr
-sudo chown -R $uservar:$uservar /home/$uservar/Trackyr/
+printf "${GREEN}[> START <]   Cloning GitHub Repo (Trackyr/Trackyr) to $TRACKYR_LOCAL_PATH${NC}\n"
+sleep 1
+
+if [[ -d "$TRACKYR_LOCAL_PATH" ]]; then
+    printf "${ORANGE}[> INFO <] $TRACKYR_LOCAL_PATH already exists, deleting the contents so that we can clone into it.${NC}\n"
+    sudo rm -rf "$TRACKYR_LOCAL_PATH"
+fi
+sudo git clone -q $TRACKYR_GIT_PATH $TRACKYR_LOCAL_PATH
+sudo chown -R $USERVAR:$USERVAR $TRACKYR_LOCAL_PATH
+
+sleep 1
+printf "${RED}[> END <]   Cloning GitHub Repo (Trackyr/Trackyr) to $TRACKYR_LOCAL_PATH${NC}\n"
+
+
+
+sleep 2.5
+echo ""
+
+
 
 # install pips
-sudo pip3 -q install -r ~/Trackyr/src/requirements.txt
+printf "${GREEN}[> START <]   Installing Python packages${NC}\n"
+sleep 1
+
+sudo pip3 -q install -r $TRACKYR_LOCAL_PATH/src/requirements.txt
+
+sleep 1
+printf "${RED}[> END <]   Installing Python packages${NC}\n"
+
+
+
+sleep 2.5
+echo ""
+
+
+
+printf "${GREEN}[> START <]   Preparing crontab and other permissions${NC}\n"
+sleep 1
 
 # give main.py executable permissions
-sudo chmod +x /home/$uservar/Trackyr/src/main.py
+sudo chmod +x $TRACKYR_LOCAL_PATH/src/main.py
+
+# create blank crontab
+crontab -l > mycron
+echo "" >> mycron
+crontab mycron
+rm mycron
+
+sleep 1
+printf "${RED}[> END <]   Preparing crontab and other permissions${NC}\n"
+
+
+
+sleep 2.5
+echo ""
+
+
 
 # prepare config file for postgresql
-sudo mkdir /etc/trackyr/ && sudo touch /etc/trackyr/config.json
+printf "${GREEN}[> START <]   Setup database${NC}\n"
+sleep 1
 
-sudo chmod a+w /etc/trackyr/config.json
-sudo cat >/etc/trackyr/config.json <<EOL
+sudo touch $TRACKYR_CONFIG_PATH
+sudo chmod a+w $TRACKYR_CONFIG_PATH
+sudo cat >$TRACKYR_CONFIG_PATH <<EOL
 {
         "SECRET_KEY": "b7f08f13e1be469b48813eff3359c9900d04d09951769c5aa97ef7f4c00c6229",
         "POSTGRES_URL": "127.0.0.1:5432",
-        "POSTGRES_USER": "$uservar",
-        "POSTGRES_PW": "CHANGEME",
+        "POSTGRES_USER": "$USERVAR",
+        "POSTGRES_PW": "$USERPASS",
         "POSTGRES_DB": "trackyr"
 }
 EOL
 
-# setup postgresql
-## Whatever you select to be your password for this user, update POSTGRES_PW in /etc/trackyr/config.json
-sudo -u postgres createuser -P -s -e $uservar
-sudo -u $uservar createdb trackyr
+sudo touch $TRACKYR_LOCAL_PATH/src/trackyr/config.py
+sudo chmod a+w $TRACKYR_LOCAL_PATH/src/trackyr/config.py
+sudo cat >$TRACKYR_LOCAL_PATH/src/trackyr/config.py <<EOL
+import os
+import json
 
-# if you need to connect to the database, use the following command:
-# psql -U trackyrsu -d trackyr
+with open('$TRACKYR_CONFIG_PATH') as config_file:
+    config = json.load(config_file)
+
+class Config:
+    SECRET_KEY = config.get('SECRET_KEY')
+
+    POSTGRES_URL = config.get('POSTGRES_URL')
+    POSTGRES_USER = config.get('POSTGRES_USER')
+    POSTGRES_PW = config.get('POSTGRES_PW')
+    POSTGRES_DB = config.get('POSTGRES_DB')
+
+    SQLALCHEMY_DATABASE_URI = f"postgresql://{POSTGRES_USER}:{POSTGRES_PW}@{POSTGRES_URL}/{POSTGRES_DB}"
+EOL
+
+# setup postgresql
+## Whatever you select to be your password for this user, update POSTGRES_PW in /etc/trackyr-config.json
+doesPostUserExist=$(psql postgres -tAc "SELECT 1 FROM pg_roles WHERE rolname='$USERVAR'")
+if [[ doesPostUserExist -lt 1 ]] ; then
+    printf "${ORANGE}[> INFO <] $USERVAR doesn't exist, creating the user.${NC}\n"
+    sudo -u postgres createuser -s -E $USERVAR
+    psql postgres -tAc "ALTER USER \"${USERVAR}\" WITH ENCRYPTED PASSWORD '${USERPASS}'"
+    sudo rm ~/.psql_history
+fi
+doesTrackyrDatabaseExist=$(psql postgres -tAc "SELECT 1 FROM pg_database WHERE datname='trackyr'")
+if [[ doesTrackyrDatabaseExist -lt 1 ]] ; then
+    printf "${ORANGE}[> INFO <] trackyr database doesn't exist, creating the table.${NC}\n"
+    sudo -u $USERVAR createdb trackyr
+fi
 
 # build database
-cd /home/$uservar/Trackyr/src
+cd $TRACKYR_LOCAL_PATH/src
 export FLASK_APP=run.py
 flask db init
 flask db migrate
 flask db upgrade
 
+sleep 1
+printf "${RED}[> END <]   Setup database${NC}\n"
+
+
+
+sleep 2.5
+echo ""
+
+
+
 # create systemd service for flask server
+printf "${GREEN}[> START <]   Creating systemd service for WebUI${NC}\n"
+sleep 1
+
 sudo touch /etc/systemd/system/trackyr.service
 sudo chmod a+w /etc/systemd/system/trackyr.service
 
@@ -60,8 +207,8 @@ Description=Trackyr web server
 WantedBy=multi-user.target
 
 [Service]
-User=$uservar
-WorkingDirectory=/home/$uservar/Trackyr/src
+User=$USERVAR
+WorkingDirectory=$TRACKYR_LOCAL_PATH/src
 ExecStart=$(which gunicorn) -b 0.0.0.0:5000 -w 3 run:app
 TimeoutSec=600
 Restart=on-failure
@@ -71,3 +218,15 @@ EOL
 sudo systemctl daemon-reload
 sudo systemctl enable trackyr.service
 sudo systemctl start trackyr.service
+
+sleep 1
+printf "${RED}[> END <]   Creating systemd service for WebUI${NC}\n"
+
+
+
+sleep 1
+echo ""
+
+
+
+printf "${ORANGE}[> INFO <]   You can access the WebUI at $PRIVATE_IP:5000${NC}\n"
