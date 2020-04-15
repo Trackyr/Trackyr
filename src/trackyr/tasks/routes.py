@@ -4,6 +4,8 @@ from trackyr import db
 from trackyr.models import Task, Source, NotificationAgent
 from trackyr.tasks.forms import TaskForm
 
+from lib.utils import cron
+
 tasks = Blueprint('tasks', __name__)
 
 @tasks.route("/tasks/create", methods=['GET', 'POST'])
@@ -23,6 +25,7 @@ def create_tasks():
                     exclude=form.exclude.data)
         db.session.add(task)
         db.session.commit()
+        cron.add(int(form.frequency.data), "minutes")
         flash('Your task has been created!', 'success')
         return redirect(url_for('main.tasks'))
     return render_template('create-task.html', title='Create a Task', 
