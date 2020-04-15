@@ -7,11 +7,11 @@ import lib.core.notif_agent as notif_agent
 def start():
     while True:
         option = prompts.prompt_options(
-            msg("Choose a Category"),
-            ["tasks","sources","notification agents","quit"],
+            get_msg("Choose a Category"),
+            ["tasks","sources","notification agents",None,"quit"],
             print_options = False,
             menu_style = True,
-            menu_title = title("Categories")
+            menu_title = get_title("Categories")
         )
 
         if option == "tasks":
@@ -32,11 +32,11 @@ def start():
 def tasks():
     while True:
         option = prompts.prompt_options(
-            msg("Choose a Task Option"),
-            ["back to menu", "new","edit","delete","list","test","prime"],
+            get_msg("Choose a Task Option"),
+            ["new","edit","delete",None,"list","test","prime",None,"back to menu"],
             print_options = False,
             menu_style = True,
-            menu_title = title("Tasks")
+            menu_title = get_title("Tasks")
         )
 
         if option == "new":
@@ -58,9 +58,10 @@ def tasks():
             task.list_tasks(core.get_tasks())
 
         elif option == "test":
-            task.choose_task(
-                msg = "TEST",
-            )
+            test_task()
+
+        elif option == "prime":
+            prime_task()
 
         elif option == "back to menu":
             return
@@ -68,14 +69,49 @@ def tasks():
         else:
             print(f"'{option}' not implemented.")
 
+def test_task():
+    task = simple_cmd("Choose a Task to Test", "Test Task", core.get_tasks(), core.TASKS_FILE, core.TASK)
+    if task is not None:
+        core.run_task(
+            task,
+            save_ads=False,
+            notify=False,
+            ignore_old_ads=True
+        )
+
+def prime_task():
+    task = simple_cmd("Choose a Task to Prime", "Prime Task", core.get_tasks(), core.TASKS_FILE, core.Task)
+    if task is not None:
+        core.run_task(
+            task,
+            save_ads=True,
+            notify=False,
+        )
+
+def simple_cmd(msg, title, dict, file, obj):
+    while True:
+        option = prompts.choose_from_dict(
+            get_msg(msg),
+            get_title(title),
+            dict,
+            file,
+            options_dict = { "d" : "done" },
+        )
+
+        if option == "d":
+            return None
+
+        elif isinstance(option, obj):
+            return option
+
 def sources():
     while True:
         option = prompts.prompt_options(
-            msg("Choose a Source Option"),
-            ["back to menu", "new","edit","delete","list","test"],
+            get_msg("Choose a Source Option"),
+            ["new","edit","delete",None,"list","test",None,"back to menu"],
             print_options = False,
             menu_style = True,
-            menu_title = title("Sources")
+            menu_title = get_title("Sources")
         )
 
         if option == "back to menu":
@@ -104,18 +140,28 @@ def sources():
                 core.NOTIF_AGENTS_FILE
             )
 
+        elif option == "list":
+            source.list_sources(core.get_sources())
+
+        elif option == "test":
+            test_source()
 
         else:
             print(f"'{option}' not implemented.")
 
+def test_source():
+    src = simple_cmd("Choose a Source to Test", "Test Source", core.get_sources(), core.SOURCES_FILE, core.Source)
+    if source is not None:
+        source.test_source(src, core.get_source_modules())
+
 def notif_agents():
     while True:
         option = prompts.prompt_options(
-            msg("Choose a Notification Agent Option"),
-            ["back to menu", "new","edit","delete","list","test"],
+            get_msg("Choose a Notification Agent Option"),
+            ["new","edit","delete",None,"list","test",None,"back to menu"],
             print_options = False,
             menu_style = True,
-            menu_title = title("Notification Agents")
+            menu_title = get_title("Notification Agents")
         )
 
         if option == "new":
@@ -141,6 +187,12 @@ def notif_agents():
                 core.TASKS_FILE
             )
 
+        elif option == "list":
+            notif_agent.list_notif_agents(core.get_notif_agents())
+
+        elif option == "test":
+            test_notif_agent()
+
         elif option == "back to menu":
             return
 
@@ -148,9 +200,14 @@ def notif_agents():
             print(f"'{option}' not implemented.")
 
 
-def title(title):
+def test_notif_agent():
+    nagent = simple_cmd("Choose a Notification Agent to Test", "Test Notification Agent", core.get_notif_agents(), core.NOTIF_AGENTS_FILE, core.NotifAgent)
+    if notif_agent is not None:
+        notif_agent.test_notif_agent(nagent, core.get_notif_agent_modules())
+
+def get_title(title):
     return f"{title}\n---------------------"
 
-def msg(msg):
+def get_msg(msg):
     return f"---------------------\n{msg}"
 

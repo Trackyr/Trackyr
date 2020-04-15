@@ -136,11 +136,8 @@ def list_sources_in_file(file):
     list_sources(load_sources(file))
 
 def list_sources(sources):
-    i = 0
     for t in sources:
-        print (f"[{i}]")
-        print_source(t)
-        i = i+1
+        print(sources[t])
 
 def append_source_to_file(source, file):
     sources = load_sources(file)
@@ -155,16 +152,6 @@ def delete_source_from_file(index, file):
 
     del(sources[index])
     save_sources(sources, file)
-
-def print_source(source):
-        print(f"""
-Name: {source.name}
-Source: {source.source}
-Frequency: {source.frequency} {source.frequency_unit}
-Url: {source.url}
-Include: {source.include}
-Exclude: {source.exclude}
-""")
 
 def source_creator(source, cur_sources, modules, file):
     s = source

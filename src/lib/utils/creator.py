@@ -5,6 +5,49 @@ from copy import deepcopy
 import lib.utils.logger as log
 import lib.core as core
 
+def choose_from_dict(
+        msg,
+        title,
+        dict,
+        file,
+        options_dict = None,
+        confirm_msg = None
+    ):
+
+    print(title)
+
+    while True:
+        dict_list = list(dict.values())
+
+        for i in range(len(dict_list)):
+            print(f"{i} - {dict_list[i].name}")
+
+        if options_dict is not None:
+            for o in options_dict:
+                print(f"{o} - {options_dict[o]}")
+
+        tnum_str = prompt_string(msg)
+
+        if options_dict is not None:
+            for o in options_dict:
+                if re.match(tnum_str, o):
+                    return o
+
+        if not re.match("[0-9]+$", tnum_str):
+            continue
+
+        tnum = int(tnum_str)
+        if tnum < 0 and tnum >= len(dict):
+            continue
+
+        obj = dict_list[tnum]
+
+        if confirm_msg is not None:
+            if creator.yes_no(format_string(confirm_msg, obj)) == "n":
+                continue
+
+        return obj
+
 def prompt_num(msg, force_positive=True, default=None):
     default_str = ""
 
@@ -20,6 +63,17 @@ def prompt_num(msg, force_positive=True, default=None):
         if re.match("[0-9]+$", num_str):
             num = int(num_str)
             return num
+
+def format_string(string, obj):
+    while True:
+        m = re.findall("([{][^}]*[}])", string)
+        if m is None or len(m) == 0:
+            break
+
+        attr = re.search("[^{][^}]*", m[0]).group(0)
+        string = re.sub(m[0], getattr(obj, attr), string)
+
+    return string
 
 def prompt_range(msg, min, max, default=None, extra_options=None, allow_abbrev=True):
     default_str = ""
@@ -96,6 +150,11 @@ def prompt_options(
             print()
             print(menu_title)
             for o in options:
+                # option is a spacer
+                if o is None or o == "":
+                    print()
+                    continue
+
                 print(o)
 
         result = input(f"{msg}{choices}:{default_str} ")
@@ -115,6 +174,9 @@ def prompt_options(
             found = None
             ambiguous = False
             for o in options:
+                if o is None or o == "":
+                    continue
+
                 if not case_sens:
                     o = o.lower()
 

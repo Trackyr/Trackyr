@@ -123,6 +123,10 @@ def get_enabled(agents):
 
     return result
 
+def list_notif_agents(notif_agents):
+    for id in notif_agents:
+        print(notif_agents[id])
+
 # save agents depending on data mode
 def save(*args, **kwargs):
     if (settings.get("data_mode") == settings.DATA_MODE_DB):
