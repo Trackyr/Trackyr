@@ -6,6 +6,6 @@
 data_mode: DB
 global_exclude: []
 global_include: []
-log_mode: INFO
+log_mode: DEBUG
 log_rotation_files: 5
-recent_ads: 3
+recent_ads: 0

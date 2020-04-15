@@ -1,4 +1,3 @@
-#!usr/bin/env python3
 import os
 import sys
 import collections
@@ -137,11 +136,8 @@ def list_sources_in_file(file):
     list_sources(load_sources(file))
 
 def list_sources(sources):
-    i = 0
     for t in sources:
-        print (f"[{i}]")
-        print_source(t)
-        i = i+1
+        print(sources[t])
 
 def append_source_to_file(source, file):
     sources = load_sources(file)
@@ -157,64 +153,34 @@ def delete_source_from_file(index, file):
     del(sources[index])
     save_sources(sources, file)
 
-def print_source(source):
-        print(f"""
-Name: {source.name}
-Source: {source.source}
-Frequency: {source.frequency} {source.frequency_unit}
-Url: {source.url}
-Include: {source.include}
-Exclude: {source.exclude}
-""")
-
-def source_creator(cur_sources, modules, file, edit_source=None):
-    s = {}
-    if edit_source is not None:
-        e = edit_source
-        s["id"] = e.id
-        s["name"] = e.name
-        s["module"] = e.module
-        for p in e.module_properties:
-            s[f"prop_{p}"] = e.module_properties[p]
+def source_creator(source, cur_sources, modules, file):
+    s = source
 
     while True:
-        s["id"] = creator.create_simple_id(list(cur_sources))
-        s["name"] = creator.prompt_string("Name", default=s.get("name", None))
-        s["module"] = create_source_choose_module(modules, s.get("module", None))
-        module = modules[s["module"]]
+        name = s.name
+        s.name = creator.prompt_string("Name", default=name)
+
+        module_name = s.module
+        s.module = create_source_choose_module(modules, module_name)
+
+        module = modules[module_name]
         props = module.get_properties()
         print("Module Properties")
         for p in props:
-            s[f"prop_{p}"] = creator.prompt_string(f"{p}", default=s.get(f"prop_{p}", None))
+            default = None 
+            if s.module_properties is not None:
+                default =s.module_properties.get(p, None)
+
+            s.module_properties[p] = creator.prompt_string(f"{p}", default=default)
 
         print()
-        print(f"Id: {s['id']}")
-        print(f"Name: {s['name']}")
-        print(f"Module: {s['module']}")
+        print(f"Id: {s.id}")
+        print(f"Name: {s.name}")
+        print(f"Module: {s.module}")
         print ("-----------------------------")
-        for p in props:
-            val = s[f"prop_{p}"]
-            print(f"{p}: {val}")
+        for p in s.module_properties:
+            print(f"{p}: {s.module_properties[p]}")
         print ("-----------------------------")
-
-        set_props = {}
-        for p in props:
-            set_props[p] = s[f"prop_{p}"]
-
-        if edit_source is None:
-            source = Source(
-                id=s["id"],
-                name=s["name"],
-                module=s["module"],
-                module_properties=set_props
-            )
-
-        else:
-            edit_source.id = s["id"]
-            edit_source.name = s["name"]
-            edit_source.module = s["module"]
-            edit_source.module_properties = set_props
-            source = edit_source
 
         while True:
             confirm = creator.prompt_options("Choose an option", ["save","edit","test","quit"])
@@ -232,7 +198,8 @@ def source_creator(cur_sources, modules, file, edit_source=None):
         elif confirm == "quit":
             return
 
-    cur_sources[s["id"]] = source
+    cur_sources[source.id] = source
+
     save(cur_sources, file)
 
 def create_source_choose_module(scrapers, default=None):
@@ -270,9 +237,9 @@ def create_source_choose_module(scrapers, default=None):
             if scraper_index >= 0 and scraper_index < len(scrapers_list):
                 return scrapers_list[scraper_index]
 
-def create_source(cur_sources, scrapers, file, edit_source=None):
+def create_source(cur_sources, scrapers, file):
     creator.print_title("Add Source")
-    source_creator(cur_sources, scrapers, file, edit_source=edit_source)
+    source_creator(Source(), cur_sources, scrapers, file)
 
 
 def edit_source(cur_sources, scrapers, file):
@@ -281,7 +248,7 @@ def edit_source(cur_sources, scrapers, file):
     if source == "d":
         return
     else:
-        create_source(cur_sources, scrapers, file, edit_source=source)
+        source_creator(source, cur_sources, scrapers, file)
 
 def delete_source(sources_dict, sources_file, tasks_dict, tasks_file):
     creator.print_title("Delete Source")
