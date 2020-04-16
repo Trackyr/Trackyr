@@ -77,6 +77,9 @@ fi
 sudo git clone -q $TRACKYR_GIT_PATH $TRACKYR_LOCAL_PATH
 sudo chown -R $USERVAR:$USERVAR $TRACKYR_LOCAL_PATH
 
+sudo touch $TRACKYR_LOCAL_PATH/src/ads.json
+sudo chmod a+w $TRACKYR_LOCAL_PATH/src/ads.json
+
 sleep 1
 printf "${RED}[> END <]   Cloning GitHub Repo (Trackyr/Trackyr) to $TRACKYR_LOCAL_PATH${NC}\n"
 
