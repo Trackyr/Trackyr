@@ -125,7 +125,6 @@ def scrape_source(
 
         else:
             log.debug(f"No old ads found for module: {source.module}")
-            print(ads)
 
     else:
         log.info_print("Ignoring old ads...")
