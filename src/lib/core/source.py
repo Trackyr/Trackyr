@@ -36,8 +36,8 @@ class Source:
     def __init__(self,
                 id = None,
                 name = "New Source",
-                module = "",
-                module_properties = {}
+                module = None,
+                module_properties = None
         ):
 
         if id is None:
@@ -160,16 +160,18 @@ def source_creator(source, cur_sources, modules, file):
         name = s.name
         s.name = creator.prompt_string("Name", default=name)
 
-        module_name = s.module
-        s.module = create_source_choose_module(modules, module_name)
+        s.module = create_source_choose_module(modules, s.module)
 
-        module = modules[module_name]
+        module = modules[s.module]
         props = module.get_properties()
         print("Module Properties")
         for p in props:
             default = None 
             if s.module_properties is not None:
-                default =s.module_properties.get(p, None)
+                default = s.module_properties.get(p, None)
+
+            if s.module_properties is None:
+                s.module_properties = {}
 
             s.module_properties[p] = creator.prompt_string(f"{p}", default=default)
 
