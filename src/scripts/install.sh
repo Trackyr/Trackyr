@@ -94,7 +94,7 @@ echo ""
 printf "${GREEN}[> START <]   Installing Python packages${NC}\n"
 sleep 1
 
-sudo python3.7 -m pip -q install -r $TRACKYR_LOCAL_PATH/src/requirements.txt
+python3.7 -m pip -q install -r $TRACKYR_LOCAL_PATH/src/requirements.txt
 
 sleep 1
 printf "${RED}[> END <]   Installing Python packages${NC}\n"
