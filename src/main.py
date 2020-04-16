@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python3.7
 # see 'main.py -h' for help
 # or 'main.py task|source|notification-agent -h'
 

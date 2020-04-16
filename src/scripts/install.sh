@@ -1,5 +1,6 @@
 #!/bin/bash
 USERVAR=$(whoami)
+USERPASS="trackyrpass"
 TRACKYR_GIT_PATH="https://github.com/Trackyr/Trackyr.git"
 TRACKYR_LOCAL_PATH="/etc/Trackyr"
 TRACKYR_CONFIG_PATH="/etc/trackyr-config.json"
@@ -9,6 +10,9 @@ GREEN='\033[0;32m'
 ORANGE='\033[;33m'
 RED='\033[0;31m'
 NC='\033[0m'
+
+# incase user is using this script for updating instead of installing, cd to home to make sure they are not in TRACKYR_LOCAL_PATH.
+cd ~
 
 echo "                                                                                                                                       "
 echo "#######################################################################################################################################"
@@ -24,11 +28,6 @@ echo "##########################################################################
 echo "                                                                                                                                       "
 
 sleep 15
-
-printf "${ORANGE}During this installation script, we will be creating a postgresql user to create the database.\n"
-printf "${ORANGE}For this user, we need you to provide a password so that Trackyr can talk to the database. \n"
-printf "${ORANGE}You will likely not use this password in the future unless you are going into postgresql cli.${NC}\n"
-read -sp 'Password (will not show response while typing): ' USERPASS
 
 printf "\n\n"
 
@@ -53,7 +52,9 @@ echo ""
 printf "${GREEN}[> START <]   Installing necessary packages${NC}\n"
 sleep 1
 
-sudo apt -q install git python3 python3-pip python3-bs4 python3-flask postgresql postgresql-contrib -y
+sudo apt install software-properties-common -y
+sudo add-apt-repository ppa:deadsnakes/ppa
+sudo apt -q install git python3.7 python3-pip python3-bs4 python3-flask postgresql postgresql-contrib -y
 
 sleep 1
 printf "${RED}[> END <]   Installing necessary packages${NC}\n"
@@ -90,7 +91,7 @@ echo ""
 printf "${GREEN}[> START <]   Installing Python packages${NC}\n"
 sleep 1
 
-sudo pip3 -q install -r $TRACKYR_LOCAL_PATH/src/requirements.txt
+sudo python3.7 -m pip -q install -r $TRACKYR_LOCAL_PATH/src/requirements.txt
 
 sleep 1
 printf "${RED}[> END <]   Installing Python packages${NC}\n"
@@ -178,9 +179,9 @@ fi
 # build database
 cd $TRACKYR_LOCAL_PATH/src
 export FLASK_APP=run.py
-flask db init
-flask db migrate
-flask db upgrade
+python3.7 -m flask db init
+python3.7 -m flask db migrate
+python3.7 -m flask db upgrade
 
 sleep 1
 printf "${RED}[> END <]   Setup database${NC}\n"
