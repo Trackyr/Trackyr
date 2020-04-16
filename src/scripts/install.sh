@@ -53,7 +53,9 @@ echo ""
 printf "${GREEN}[> START <]   Installing necessary packages${NC}\n"
 sleep 1
 
-sudo apt -q install git python3 python3-pip python3-bs4 python3-flask postgresql postgresql-contrib -y
+sudo apt install software-properties-common -y
+sudo add-apt-repository ppa:deadsnakes/ppa
+sudo apt -q install git python3.8 python3-pip python3-bs4 python3-flask postgresql postgresql-contrib -y
 
 sleep 1
 printf "${RED}[> END <]   Installing necessary packages${NC}\n"
@@ -90,7 +92,7 @@ echo ""
 printf "${GREEN}[> START <]   Installing Python packages${NC}\n"
 sleep 1
 
-sudo pip3 -q install -r $TRACKYR_LOCAL_PATH/src/requirements.txt
+sudo python3.8 -m pip -q install -r $TRACKYR_LOCAL_PATH/src/requirements.txt
 
 sleep 1
 printf "${RED}[> END <]   Installing Python packages${NC}\n"
