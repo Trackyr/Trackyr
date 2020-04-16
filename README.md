@@ -25,4 +25,4 @@ It should respond "ALTER ROLE" if it went through.
 
 Lastly, restart the service.
 
->$ sudo systemctl restart trackyr-service
+>$ sudo systemctl restart trackyr.service

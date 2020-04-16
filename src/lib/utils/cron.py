@@ -7,8 +7,12 @@ import argparse
 import subprocess
 import re
 import lib.utils.logger as log
+import lib.core as core
 
-path = os.getcwd() + "/main.py"
+#	path = os.getcwd() + "/main.py
+path = os.path.dirname(os.path.abspath(__file__ + "/../.."))
+def print_path():
+    print(path)
 
 def get_cron_line(time, unit):
     cron_time = convert(time, unit)
@@ -83,3 +87,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+    print(path)
