@@ -31,7 +31,7 @@ def main():
     parser.add_argument("--force-notification-agents", action="store_true", help="Force notification agents to be used even when disabled")
 
     main_args = parser.add_mutually_exclusive_group()
-    main_args.add_argument("-c", "--cron-job", nargs=2, metavar=('INTEGER','minutes|hours'))
+    main_args.add_argument("-c", "--cron-job", nargs="+", metavar=('INTEGER','minutes|hours'))
     main_args.add_argument("-r", "--refresh-cron", action="store_true", help="Refresh cron with current task frequencies")
     main_args.add_argument("-p", "--prime-all-tasks", action="store_true", help="Prime all tasks. If tasks file was edited manually, prime all the ads to prevent large notification dump")
     main_subparsers = parser.add_subparsers(dest="cmd")
@@ -70,14 +70,17 @@ def main():
         notify_recent = args.notify_recent
 
     if args.cron_job:
-        core.cron(
-            args.cron_job[0],
-            args.cron_job[1],
-            notify=not args.skip_notification,
-            force_tasks=args.force_tasks,
-            force_agents=args.force_notification_agents,
-            recent_ads=notify_recent
-        )
+        if args.cron_job[0] == "path":
+            cron.print_path()
+        else:
+            core.cron(
+                args.cron_job[0],
+                args.cron_job[1],
+                notify=not args.skip_notification,
+                force_tasks=args.force_tasks,
+                force_agents=args.force_notification_agents,
+                recent_ads=notify_recent
+            )
 
     elif args.cmd == "task":
         task_cmd(args)
