@@ -8,7 +8,9 @@ import subprocess
 import re
 import lib.utils.logger as log
 
-path = os.path.dirname(os.path.abspath(__file__ + "/../.."))
+pyfile = "main.py"
+path = os.path.dirname(os.path.abspath(__file__ + "/../..")) + "/" + pyfile
+
 def print_path():
     print(path)
 
