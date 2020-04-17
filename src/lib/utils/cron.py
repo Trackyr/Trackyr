@@ -7,9 +7,7 @@ import argparse
 import subprocess
 import re
 import lib.utils.logger as log
-import lib.core as core
 
-#	path = os.getcwd() + "/main.py
 path = os.path.dirname(os.path.abspath(__file__ + "/../.."))
 def print_path():
     print(path)
