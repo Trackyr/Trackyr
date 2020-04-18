@@ -107,13 +107,16 @@ def refresh_cron(tasks=None):
     for s in schedules:
         cron.add(s[0], s[1])
 
+def test(task):
+    run(task, notify=False, save_ads=False, ignore_old_ads=True)
+
 def prime(task, notify=True, recent_ads=3):
     if recent_ads > 0:
         notify = True
     else:
         notify = False
 
-    core.run_task(task, notify=notify, recent_ads=recent_ads)
+    run(task, notify=notify, recent_ads=recent_ads)
 
 def prime_all(tasks=None, notify=True, recent_ads=3):
     if tasks is None:
@@ -165,7 +168,6 @@ def task_creator(task):
             print(f"Frequency: {t.frequency} {t.frequency_unit}")
             print(f"Sources")
             print(f"----------------------------")
-            print(sources)
             for source_id in t.source_ids:
                 print(f"{sources[source_id].name}")
             print("-----------------------------")
@@ -182,7 +184,7 @@ def task_creator(task):
                 elif confirm == "dryrun":
                     if creator.yes_no("Execute dry run?", "y"):
                         log.debug_print("Executing dry run...")
-                        core.run_task(task, notify=False, save_ads=False)
+                        test(task)
 
                     continue
                 else:

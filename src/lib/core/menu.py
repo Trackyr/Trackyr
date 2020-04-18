@@ -66,23 +66,14 @@ def tasks():
             print(f"'{option}' not implemented.")
 
 def test_task():
-    option = simple_cmd("Choose a Task to Test", "Test Task", core.get_tasks(), core.TASKS_FILE, task.Task)
+    option = simple_cmd("Choose a Task to Test", "Test Task", State.get_tasks(), task.Task)
     if option is not None:
-        core.run_task(
-            option,
-            save_ads=False,
-            notify=False,
-            ignore_old_ads=True
-        )
+        task.test(option)
 
 def prime_task():
-    option = simple_cmd("Choose a Task to Prime", "Prime Task", core.get_tasks(), core.TASKS_FILE, task.Task)
+    option = simple_cmd("Choose a Task to Prime", "Prime Task", State.get_tasks(), task.Task)
     if option is not None:
-        core.run_task(
-            option,
-            save_ads=True,
-            notify=False,
-        )
+        task.prime(option)
 
 def simple_cmd(msg, title, dict, obj):
     while True:

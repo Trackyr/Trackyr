@@ -5,6 +5,7 @@ from sqlalchemy.orm import Session
 
 import lib.core.task as task
 import lib.core.source as source
+import lib.core.notif_agent as notif_agent
 
 from trackyr import models
 from trackyr.config import Config
@@ -220,8 +221,6 @@ def load_core_notif_agents():
     return to_core_notif_agents(notif_agent_models)
 
 def save_to_db(tosave):
-    import lib.core.notif_agent as notif_agent
-
     to_model_type = {
         task.Task: models.Task,
         source.Source: models.Source,
@@ -239,7 +238,6 @@ def save_to_db(tosave):
         source.Source: to_existing_source_model,
         notif_agent.NotifAgent: to_existing_notif_agent_model
     }
-
 
     for id in tosave:
         core_type = type(tosave[id])
