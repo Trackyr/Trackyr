@@ -24,6 +24,22 @@ class BaseSourceModule():
             if not p in valid_props:
                 raise ValueError(f"Invalid module property '{p}'")
 
+
+class ScrapeSummary():
+    def __init__(self, **kwargs):
+        keys = [
+            "new_ads",
+            "latest_ads",
+            "total_new_ads"
+        ]
+
+        for key in kwargs:
+            if not key in keys:
+                raise ValueError(f"Invalid keyword for ScrapeSummary: '{key}'")
+
+            val = kwargs[key]
+            setattr(self, key, val)
+
 class Source:
     def __init__(self,
                 id = None,
@@ -279,7 +295,7 @@ def test_source(source):
 
     module = modules[source.module]
 
-    scrape(
+    return scrape(
             source,
             None,
             include=include,
@@ -337,9 +353,8 @@ def scrape(
     log.info_print(info_string)
 
     num_ads = len(new_ads)
-    if notify and num_ads:
-        i = 0
 
+    if notify and num_ads:
         ads_to_send = new_ads
 
         if recent_ads > 0:
@@ -365,8 +380,6 @@ def scrape(
                 else:
                     log.info_print(f"Skipping... Notification agent disabled: {agent.name}")
 
-                i = i + 1
-
     elif not notify and num_ads:
         log.info_print("Skipping notification")
 
@@ -377,3 +390,9 @@ def scrape(
         log.info_print(f"Saving ads disabled. Skipping...")
 
     print()
+
+    return ScrapeSummary(
+        new_ads = new_ads,
+        latest_ads = list(new_ads)[-3:],
+        total_new_ads = len(new_ads)
+    )

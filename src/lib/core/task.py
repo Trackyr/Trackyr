@@ -15,6 +15,23 @@ import lib.core.hooks as hooks
 import lib.utils.cron as cron
 import lib.utils.creator as creator
 
+
+class RunResult():
+    def __init__(self, **kwargs):
+        keys = [
+            "source_results"
+        ]
+
+        for key in kwargs:
+            if not key in keys:
+                raise ValueError(f"Invalid keyword for RunResult: '{key}'")
+
+            val = kwargs[key]
+            setattr(self, key, val)
+
+    def __repr__(self):
+        return f"source_results"
+
 class Task:
     def __init__(self,
             id = None,
@@ -108,7 +125,7 @@ def refresh_cron(tasks=None):
         cron.add(s[0], s[1])
 
 def test(task):
-    run(task, notify=False, save_ads=False, ignore_old_ads=True)
+    return run(task, notify=False, save_ads=False, ignore_old_ads=True)
 
 def prime(task, notify=True, recent_ads=3):
     if recent_ads > 0:
@@ -116,14 +133,23 @@ def prime(task, notify=True, recent_ads=3):
     else:
         notify = False
 
-    run(task, notify=notify, recent_ads=recent_ads)
+    return run(task, notify=notify, recent_ads=recent_ads)
 
 def prime_all(tasks=None, notify=True, recent_ads=3):
     if tasks is None:
         tasks = State.get_tasks()
 
+    results = []
     for id in tasks:
-        prime(tasks[id], notify=notify, recent_ads=recent_ads)
+        results.append(
+            prime(
+                tasks[id],
+                notify=notify,
+                recent_ads=recent_ads
+            )
+        )
+
+    return results
 
 # save file depending on the data mode
 def save():
@@ -513,8 +539,10 @@ def run(
     if notify == True and force_agents == False:
         notif_agent.notif_agents_enabled_check(task_notif_agents)
 
+    source_results = {}
+
     for source_id in task.source_ids:
-        source.scrape(
+        source_results[source_id] = source.scrape(
             sources[source_id],
             task_notif_agents,
             include=task.include,
@@ -530,3 +558,5 @@ def run(
     if save_ads:
         ad.save()
 
+    result = RunResult(source_results = source_results)
+    return result
