@@ -13,11 +13,13 @@ def noop(self, *args, **kw):
 yaml.emitter.Emitter.process_tag = noop
 
 from importlib import util, machinery
-import inspect
 
 import lib.core.settings as settings
-import lib.core.hooks as hooks
+import lib.utils.logger as log
+
+from lib.core.state import State
 import lib.core as core
+import lib.core.hooks as hooks
 
 import lib.utils.creator as creator
 import lib.utils.reflection as refl
@@ -41,7 +43,7 @@ class Source:
         ):
 
         if id is None:
-            id =  creator.create_simple_id(core.get_sources())
+            id =  creator.create_simple_id(State.get_sources())
 
         self.id = id
         self.name = name
@@ -49,30 +51,13 @@ class Source:
         self.module_properties = module_properties
 
     def __repr__(self):
-        return f"""
-id: {self.id}
-name:{self.name}
+        return f"""id: {self.id}
+name: {self.name}
 module: {self.module}
-module_properties: {self.module_properties}
-"""
-
-def load_sources(file):
-    if not os.path.exists(file):
-        open(file, "w+")
-
-    with open(file, "r") as stream:
-        sources_yaml = yaml.safe_load(stream)
-
-    sources = {}
-    if sources_yaml is not None:
-        for s in sources_yaml:
-            source = Source.load(s)
-            sources[source.id] = source
-
-    return sources
+module_properties: {self.module_properties}"""
 
 # looks for sub directories inside "module_dir/"
-# and inspects its contents for a "scraper.py" file and grabs the class inside that file
+# and inspects its contents for a "module.py" file and grabs the class inside that file
 # PARAMS: directory - the working directory
 #         module_dir - the sub directory in directory where the modules can be found
 # RETURNS: a dictionary {module_name : module_instance} 
@@ -98,69 +83,31 @@ def load_modules(directory, module_dir):
     return result
 
 
-def save(*args, **kwargs):
-    if (settings.get("data_mode") == settings.DATA_MODE_DB):
-        save_db(args[0], **kwargs)
-    elif (settings.get("data_mode") == settings.DATA_MODE_YAML):
-        save_yaml(args[0], args[1], **kwargs)
+def save():
+    State.save_sources()
 
-def save_db(sources):
-    hooks.save_to_db(sources)
+def list_sources(pause_after = 0):
+    sources = State.get_sources()
 
-def save_yaml(sources, file, preserve_comments=True):
-    if isinstance(sources, dict):
-        old_sources = sources
-        sources = []
-        for s in old_sources:
-            sources.append(old_sources[s])
+    i = 0
+    for id in sources:
+        print(sources[id])
+        i = i + 1
+        if pause_after > 0 and i == pause_after:
+            i = 0
+            if input(":") == "q":
+                break
 
-    elif isinstance(sources, list) == False:
-        raise ValueError(f"sources must by list or dict, not: {type(sources)}")
-
-
-    if preserve_comments:
-        # preserve comments in file
-        with open(file, "r") as stream:
-            filestream = stream.read()
-
-        match = re.findall("([#][^\n]*[\n]|[#][\n])", filestream)
-
-    with open(file, "w") as stream:
-        if preserve_comments and match:
-            for m in match:
-                stream.write(m)
-
-        yaml.dump(sources, stream, default_flow_style=False, sort_keys=False)
-
-def list_sources_in_file(file):
-    list_sources(load_sources(file))
-
-def list_sources(sources):
-    for t in sources:
-        print(sources[t])
-
-def append_source_to_file(source, file):
-    sources = load_sources(file)
-    sources.append(source)
-    save_sources(sources, file)
-
-def delete_source_from_file(index, file):
-    sources = load_sources(file)
-    if index < 0 or index >= len(sources):
-        logging.error(f"sourcelib.delete_source_from_file: Invalid index: {index}")
-        return
-
-    del(sources[index])
-    save_sources(sources, file)
-
-def source_creator(source, cur_sources, modules, file):
+def source_creator(source):
     s = source
+    sources = State.get_sources()
+    modules = State.get_source_modules()
 
     while True:
         name = s.name
         s.name = creator.prompt_string("Name", default=name)
 
-        s.module = create_source_choose_module(modules, s.module)
+        s.module = create_source_choose_module(s.module)
 
         module = modules[s.module]
         props = module.get_properties()
@@ -200,59 +147,67 @@ def source_creator(source, cur_sources, modules, file):
         elif confirm == "quit":
             return
 
-    cur_sources[source.id] = source
+    sources[source.id] = source
 
-    save(cur_sources, file)
+    save()
 
-def create_source_choose_module(scrapers, default=None):
+def create_source_choose_module(default=None):
+    modules = State.get_source_modules()
+
     default_str = ""
 
-    if default is None and len(scrapers) == 1:
-        default = list(scrapers)[0]
+    if default is None and len(modules) == 1:
+        default = list(modules)[0]
 
     if default is not None:
         default_str = f" [{default}]"
 
     while True:
-        scrapers_list = []
+        modules_list = []
         i = 0
-        for s in scrapers:
-            scrapers_list.append(s)
+        for s in modules:
+            modules_list.append(s)
             print(f"{i} - {s}")
             i = i + 1
 
         choices = "0"
-        if len(scrapers_list) > 1:
-            choices = f"0-{len(scrapers_list) - 1}"
+        if len(modules_list) > 1:
+            choices = f"0-{len(modules_list) - 1}"
 
-        scraper_index_str = input(f"Module [Choose from {choices}]:{default_str} ")
+        module_index_str = input(f"Module [Choose from {choices}]:{default_str} ")
 
-        if default is not None and scraper_index_str == "":
+        if default is not None and module_index_str == "":
             return default
 
-        if len(scrapers_list) == 0 and scraper_index_str == "":
-            scraper_index = 0
+        if len(modules_list) == 0 and module_index_str == "":
+            module_index = 0
             break
 
-        if re.match("[0-9]+$", scraper_index_str):
-            scraper_index = int(scraper_index_str)
-            if scraper_index >= 0 and scraper_index < len(scrapers_list):
-                return scrapers_list[scraper_index]
+        if re.match("[0-9]+$", module_index_str):
+            module_index = int(module_index_str)
+            if module_index >= 0 and module_index < len(modules_list):
+                return modules_list[module_index]
 
-def create_source(cur_sources, scrapers, file):
+def create_source():
     creator.print_title("Add Source")
-    source_creator(Source(), cur_sources, scrapers, file)
+    source_creator(Source())
 
 
-def edit_source(cur_sources, scrapers, file):
+def edit_source():
+    sources = State.get_sources()
+    modules = State.get_source_modules()
+
     creator.print_title("Edit Source")
-    source = creator.prompt_complex_dict("Choose a source", cur_sources, "name", extra_options=["d"], extra_options_desc=["done"])
+    source = creator.prompt_complex_dict("Choose a source", sources, "name", extra_options=["d"], extra_options_desc=["done"])
     if source == "d":
         return
     else:
-        source_creator(source, cur_sources, scrapers, file)
+        source_creator(source)
 
-def delete_source(sources_dict, sources_file, tasks_dict, tasks_file):
+def delete_source():
+    sources_dict = State.get_sources()
+    tasks_dict = State.get_tasks()
+
     creator.print_title("Delete Source")
     changes_made = False
 
@@ -294,7 +249,7 @@ def delete_source(sources_dict, sources_file, tasks_dict, tasks_file):
                         print("Delete those tasks or remove this notification agent from them first before deleting.")
 
                     else:
-                        do_delete_source(sources_list[tnum].id, sources_dict, tasks_dict)
+                        do_delete_source(sources_list[tnum].id)
                         changes_made = True
 
 def get_tasks_using_source(source, tasks):
@@ -306,14 +261,10 @@ def get_tasks_using_source(source, tasks):
 
     return used_by
 
-def do_delete_source(*args, **kwargs):
-    if settings.get("data_mode") == settings.DATA_MODE_DB:
-        do_delete_source_db(*args, **kwargs)
+def do_delete_source(id):
+    tasks = State.get_tasks()
+    sources = State.get_sources()
 
-    elif settings.get("data_mode") == settings.DATA_MODE_YAML:
-        do_delete_source_yaml(*args, **kwargs)
-
-def do_delete_source_db(id, sources, tasks):
     for task_id in tasks:
         task = tasks[task_id]
         if id in task.source_ids:
@@ -323,15 +274,9 @@ def do_delete_source_db(id, sources, tasks):
 
     del sources[id]
 
-def do_delete_source_yaml(id, sources, tasks):
-    for task_id in tasks:
-        task = tasks[task_id]
-        if id in task.source_ids:
-            task.source_ids.remove(id)
+def test_source(source):
+    modules = State.get_source_modules()
 
-    del sources[id]
-
-def test_source(source, modules):
     include = []
     exclude = []
 
@@ -341,12 +286,101 @@ def test_source(source, modules):
 
     module = modules[source.module]
 
-    core.scrape_source(
+    scrape(
             source,
-            [],
+            None,
             include=include,
             exclude=exclude,
             notify=False,
             save_ads=False
         )
 
+def scrape(
+        source,
+        notif_agents_list,
+        include=[],
+        exclude=[],
+        notify=True,
+        force_tasks=False,
+        force_agents=False,
+        recent_ads=0,
+        save_ads=True,
+        ignore_old_ads=False
+    ):
+
+    ads = State.get_ads()
+    source_modules = State.get_source_modules()
+    notif_agent_modules = State.get_notif_agent_modules()
+
+    log.info_print(f"Source: {source.name}")
+    log.info_print(f"Module: {source.module}")
+    log.info_print(f"Module Properties: {source.module_properties}")
+
+    if len(include):
+        print(f"Including: {include}")
+
+    if len(exclude):
+        print(f"Excluding: {exclude}")
+
+    module = source_modules[source.module]
+
+    old_ads = []
+    if ignore_old_ads == False:
+        if source.module in ads:
+            old_ads = ads[source.module]
+            log.debug(f"Total old ads: {len(old_ads)}")
+
+        else:
+            log.debug(f"No old ads found for module: {source.module}")
+
+    else:
+        log.info_print("Ignoring old ads...")
+
+    new_ads, ad_title = module.scrape_for_ads(old_ads, exclude=exclude, **source.module_properties)
+
+    info_string = f"Found {len(new_ads)} new ads" \
+        if len(new_ads) != 1 else "Found 1 new ad"
+
+    log.info_print(info_string)
+
+    num_ads = len(new_ads)
+    if notify and num_ads:
+        i = 0
+
+        ads_to_send = new_ads
+
+        if recent_ads > 0:
+            # only notify the last notify_recent new_ads
+            ads_to_send = ct.get_last_items(recent_ads, new_ads)
+            log.debug(f"Recent ads set to: {recent_ads} got: {len(ads_to_send)}")
+            log.info_print(f"Total ads to notify about: {len(ads_to_send)}")
+
+        if len(notif_agents_list) == 0:
+            log.warning_print("No notification agents set... nothing to notify")
+
+        else:
+            if len(notif_agents_list) > 1:
+                log.info_print(f"Notifying agents: {notif_agent.get_names(notif_agents_list)}")
+
+            for agent in notif_agents_list:
+                if agent.enabled or force_agents == True:
+                    if agent.enabled == False and force_agents == True:
+                        log.info_print("Notification agent was disabled but forcing...")
+
+                    notif_agent_modules[agent.module].send_ads(ads_to_send, ad_title, **agent.module_properties)
+
+                else:
+                    log.info_print(f"Skipping... Notification agent disabled: {agent.name}")
+
+                i = i + 1
+
+    elif not notify and num_ads:
+        log.info_print("Skipping notification")
+
+    if save_ads:
+        ads[source.module] = module.old_ad_ids
+        log.debug(f"Total all-time processed ads: {len(module.old_ad_ids)}")
+    else:
+        log.info_print(f"Saving ads disabled. Skipping...")
+
+    print()

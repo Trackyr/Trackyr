@@ -9,7 +9,6 @@ def choose_from_dict(
         msg,
         title,
         dict,
-        file,
         options_dict = None,
         confirm_msg = None
     ):

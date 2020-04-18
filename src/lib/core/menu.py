@@ -1,5 +1,7 @@
 import lib.utils.creator as prompts
+from lib.core.state import State
 import lib.core as core
+
 import lib.core.task as task
 import lib.core.source as source
 import lib.core.notif_agent as notif_agent
@@ -40,22 +42,16 @@ def tasks():
         )
 
         if option == "new":
-            task.task_creator(
-                task.Task(),
-                core.get_tasks(),
-                core.get_sources(),
-                core.get_notif_agents(),
-                core.TASKS_FILE
-            )
+            task.task_creator(task.Task())
 
         elif option == "edit":
-            task.edit_task(core.get_tasks(), core.get_sources(), core.get_notif_agents(), core.TASKS_FILE)
+            task.edit_task()
 
         elif option == "delete":
-            task.delete_task(core.get_tasks(), core.TASKS_FILE)
+            task.delete_task()
 
         elif option == "list":
-            task.list_tasks(core.get_tasks())
+            task.list_tasks(pause_after = 1)
 
         elif option == "test":
             test_task()
@@ -70,31 +66,30 @@ def tasks():
             print(f"'{option}' not implemented.")
 
 def test_task():
-    t = simple_cmd("Choose a Task to Test", "Test Task", core.get_tasks(), core.TASKS_FILE, task.Task)
-    if task is not None:
+    option = simple_cmd("Choose a Task to Test", "Test Task", core.get_tasks(), core.TASKS_FILE, task.Task)
+    if option is not None:
         core.run_task(
-            t,
+            option,
             save_ads=False,
             notify=False,
             ignore_old_ads=True
         )
 
 def prime_task():
-    t = simple_cmd("Choose a Task to Prime", "Prime Task", core.get_tasks(), core.TASKS_FILE, task.Task)
-    if task is not None:
+    option = simple_cmd("Choose a Task to Prime", "Prime Task", core.get_tasks(), core.TASKS_FILE, task.Task)
+    if option is not None:
         core.run_task(
-            t,
+            option,
             save_ads=True,
             notify=False,
         )
 
-def simple_cmd(msg, title, dict, file, obj):
+def simple_cmd(msg, title, dict, obj):
     while True:
         option = prompts.choose_from_dict(
             get_msg(msg),
             get_title(title),
             dict,
-            file,
             options_dict = { "d" : "done" },
         )
 
@@ -118,30 +113,16 @@ def sources():
             return
 
         elif option == "new":
-            source.source_creator(
-                source.Source(),
-                core.get_sources(),
-                core.get_source_modules(),
-                core.SOURCES_FILE
-            )
+            source.source_creator(source.Source())
 
         elif option == "edit":
-            source.edit_source(
-                core.get_sources(),
-                core.get_source_modules(),
-                core.SOURCES_FILE
-            )
+            source.edit_source()
 
         elif option == "delete":
-            source.delete_source(
-                core.get_sources(),
-                core.get_source_modules(),
-                core.get_tasks(),
-                core.NOTIF_AGENTS_FILE
-            )
+            source.delete_source()
 
         elif option == "list":
-            source.list_sources(core.get_sources())
+            source.list_sources(pause_after = 1)
 
         elif option == "test":
             test_source()
@@ -150,9 +131,9 @@ def sources():
             print(f"'{option}' not implemented.")
 
 def test_source():
-    src = simple_cmd("Choose a Source to Test", "Test Source", core.get_sources(), core.SOURCES_FILE, core.Source)
-    if source is not None:
-        source.test_source(src, core.get_source_modules())
+    option = simple_cmd("Choose a Source to Test", "Test Source", State.get_sources(), source.Source)
+    if option is not None:
+        source.test_source(option)
 
 def notif_agents():
     while True:
@@ -167,28 +148,18 @@ def notif_agents():
         if option == "new":
             notif_agent.notif_agent_creator(
                 notif_agent.NotifAgent(),
-                core.get_notif_agents(),
-                core.get_notif_agent_modules(), 
-                core.NOTIF_AGENTS_FILE
             )
 
         elif option == "edit":
             notif_agent.edit_notif_agent(
-                core.get_notif_agents(),
-                core.get_notif_agent_modules(), 
-                core.NOTIF_AGENTS_FILE
             )
 
         elif option == "delete":
             notif_agent.delete_notif_agent(
-                core.get_notif_agents(),
-                core.NOTIF_AGENTS_FILE,
-                core.get_tasks(),
-                core.TASKS_FILE
             )
 
         elif option == "list":
-            notif_agent.list_notif_agents(core.get_notif_agents())
+            notif_agent.list_notif_agents(pause_after = 1)
 
         elif option == "test":
             test_notif_agent()
@@ -201,13 +172,12 @@ def notif_agents():
 
 
 def test_notif_agent():
-    nagent = simple_cmd("Choose a Notification Agent to Test", "Test Notification Agent", core.get_notif_agents(), core.NOTIF_AGENTS_FILE, core.NotifAgent)
-    if notif_agent is not None:
-        notif_agent.test_notif_agent(nagent, core.get_notif_agent_modules())
+    option = simple_cmd("Choose a Notification Agent to Test", "Test Notification Agent", State.get_notif_agents(), core.NotifAgent)
+    if option is not None:
+        notif_agent.test_notif_agent(option)
 
 def get_title(title):
     return f"{title}\n---------------------"
 
 def get_msg(msg):
     return f"---------------------\n{msg}"
-

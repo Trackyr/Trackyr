@@ -12,9 +12,13 @@ import argparse
 
 import lib.core as core
 import lib.core.settings as settings
-import lib.utils.cron as cron
+import lib.core.cron as cron
+import lib.utils.cron as cronutils
 
 import lib.core.menu as menu
+
+#from lib.core.state import State
+#State.load()
 
 def main():
     parser = argparse.ArgumentParser()
@@ -73,7 +77,7 @@ def main():
         if args.cron_job[0] == "path":
             cron.print_path()
         else:
-            core.cron(
+            cron.run(
                 args.cron_job[0],
                 args.cron_job[1],
                 notify=not args.skip_notification,
@@ -154,14 +158,14 @@ def notif_agent_cmd(args):
         raise ValueError(f"Unknown notification-agent command: {args.notif_agent_cmd}")
 
 def refresh_cron():
-    cron.clear()
+    cronutils.clear()
     tasks = core.get_tasks()
     for id in tasks:
         t = tasks[id]
-        if cron.exists(t.frequency, t.frequency_unit):
+        if croutilsn.exists(t.frequency, t.frequency_unit):
             continue
 
-        cron.add(t.frequency, t.frequency_unit)
+        cronutils.add(t.frequency, t.frequency_unit)
 
 if __name__ == "__main__":
     main()

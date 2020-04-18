@@ -1,8 +1,10 @@
 from copy import deepcopy
+
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
 
-import lib.core as core
+import lib.core.task as task
+import lib.core.source as source
 
 from trackyr.config import Config
 from trackyr import models
@@ -19,7 +21,7 @@ def to_new_core_task(task_model):
     if not isinstance(t.notification_agent, list):
         t.notification_agent = [t.notification_agent]
 
-    return core.Task(
+    return task.Task(
             name = t.name,
             id = t.id,
             frequency = t.frequency,
@@ -72,6 +74,8 @@ def delete_task_model(core_task):
     session.delete(task_model)
 
 def to_new_core_notif_agent(notif_agent_model):
+    import lib.core.notif_agent as notif_agent
+
     n = notif_agent_model
 
     module = 0
@@ -83,7 +87,7 @@ def to_new_core_notif_agent(notif_agent_model):
         "botname": n.username
     }
 
-    return core.NotifAgent(
+    return notif_agent.NotifAgent(
                 id = n.id,
                 name = n.name,
                 module = module,
@@ -123,6 +127,8 @@ def to_existing_notif_agent_model(core_notif_agent, notif_agent_model):
     m.username = c.module_properties["botname"]
 
 def delete_notif_agent_model(core_notif_agent):
+    import lib.core.notif_agent as notif_agent
+
     notif_agent_model = session.query(models.NotificationAgent).get(core_notif_agent.id)
     session.delete(notif_agent_model)
 
@@ -138,7 +144,7 @@ def to_new_core_source(source_model):
         "url": s.website
     }
 
-    return core.Source(
+    return source.Source(
                 id = s.id,
                 name = s.name,
                 module = module,
@@ -204,22 +210,24 @@ def load_core_notif_agents():
     return notif_agents
 
 def save_to_db(tosave):
+    import lib.core.notif_agent as notif_agent
+
     to_model_type = {
-        core.Task: models.Task,
-        core.Source: models.Source,
-        core.NotifAgent: models.NotificationAgent
+        task.Task: models.Task,
+        source.Source: models.Source,
+        notif_agent.NotifAgent: models.NotificationAgent
     }
 
     to_new_model = {
-        core.Task: to_new_task_model,
-        core.Source: to_new_source_model,
-        core.NotifAgent: to_new_notif_agent_model
+        task.Task: to_new_task_model,
+        source.Source: to_new_source_model,
+        notif_agent.NotifAgent: to_new_notif_agent_model
     }
 
     to_existing_model = {
-        core.Task: to_existing_task_model,
-        core.Source: to_existing_source_model,
-        core.NotifAgent: to_existing_notif_agent_model
+        task.Task: to_existing_task_model,
+        source.Source: to_existing_source_model,
+        notif_agent.NotifAgent: to_existing_notif_agent_model
     }
 
 
