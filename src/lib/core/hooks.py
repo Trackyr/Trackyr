@@ -6,11 +6,21 @@ from sqlalchemy.orm import Session
 import lib.core.task as task
 import lib.core.source as source
 
-from trackyr.config import Config
 from trackyr import models
+from trackyr.config import Config
 
 engine = create_engine(Config.SQLALCHEMY_DATABASE_URI)
 session = Session(engine)
+
+
+def to_core_tasks(task_models):
+    tasks = {}
+
+    for t in task_models:
+        core_task = to_new_core_task(t)
+        tasks[core_task.id] = core_task
+
+    return tasks
 
 def to_new_core_task(task_model):
     t = deepcopy(task_model)
@@ -73,6 +83,71 @@ def delete_task_model(core_task):
     task_model = session.query(models.Task).get(core_task.id)
     session.delete(task_model)
 
+def to_core_sources(source_models):
+    sources = {}
+
+    for source_model in source_models:
+        sources[source_model.id] = to_new_core_source(source_model)
+
+    return sources
+
+def to_new_core_source(source_model):
+    s = source_model
+
+    module = 0
+    if s.module == 1:
+        module = "kijiji"
+
+    module_properties = {
+        "url": s.website
+    }
+
+    return source.Source(
+                id = s.id,
+                name = s.name,
+                module = module,
+                module_properties = module_properties
+            )
+
+def to_new_source_model(core_source):
+    c = core_source
+
+    module = 0
+    if c.module == "kijiji":
+        module = 1
+
+    m = models.Source()
+    m.id = c.id
+    m.name = c.name
+    m.module = module
+    m.website = c.module_properties["url"]
+    return m
+
+def to_existing_source_model(core_source, source_model):
+    c = core_source
+    m = source_model
+
+    module = 0
+    if c.module == "kijiji":
+        module = 1
+
+    m.id = c.id
+    m.name = c.name
+    m.module = module
+    m.website = c.module_properties["url"]
+
+def delete_source_model(core_source):
+    source_model = session.query(models.Source).get(core_source.id)
+    session.delete(source_model)
+
+def to_core_notif_agents(notif_agent_models):
+    notif_agents = {}
+
+    for notif_agent_model in notif_agent_models:
+        notif_agents[notif_agent_model.id] = to_new_core_notif_agent(notif_agent_model)
+
+    return notif_agents
+
 def to_new_core_notif_agent(notif_agent_model):
     import lib.core.notif_agent as notif_agent
 
@@ -132,82 +207,17 @@ def delete_notif_agent_model(core_notif_agent):
     notif_agent_model = session.query(models.NotificationAgent).get(core_notif_agent.id)
     session.delete(notif_agent_model)
 
-
-def to_new_core_source(source_model):
-    s = source_model
-
-    module = 0
-    if s.module == 1:
-        module = "kijiji"
-
-    module_properties = {
-        "url": s.website
-    }
-
-    return source.Source(
-                id = s.id,
-                name = s.name,
-                module = module,
-                module_properties = module_properties
-            )
-
-def to_new_source_model(core_source):
-    c = core_source
-
-    module = 0
-    if c.module == "kijiji":
-        module = 1
-
-    m = models.Source()
-    m.id = c.id
-    m.name = c.name
-    m.module = module
-    m.website = c.module_properties["url"]
-    return m
-
-def to_existing_source_model(core_source, source_model):
-    c = core_source
-    m = source_model
-
-    module = 0
-    if c.module == "kijiji":
-        module = 1
-
-    m.id = c.id
-    m.name = c.name
-    m.module = module
-    m.website = c.module_properties["url"]
-
-def delete_source_model(core_source):
-    source_model = session.query(models.Source).get(core_source.id)
-    session.delete(source_model)
-
 def load_core_tasks():
     task_models = session.query(models.Task).all()
-    tasks = {}
-
-    for task_model in task_models:
-        tasks[task_model.id] = to_new_core_task(task_model)
-
-    return tasks
+    return to_core_tasks(task_models)
 
 def load_core_sources():
     source_models = session.query(models.Source).all()
-    sources = {}
-
-    for source_model in source_models:
-        sources[source_model.id] = to_new_core_source(source_model)
-
-    return sources
+    return to_core_sources(source_models)
 
 def load_core_notif_agents():
     notif_agent_models = session.query(models.NotificationAgent).all()
-    notif_agents = {}
-
-    for notif_agent_model in notif_agent_models:
-        notif_agents[notif_agent_model.id] = to_new_core_notif_agent(notif_agent_model)
-
-    return notif_agents
+    return to_core_notif_agents(notif_agent_models)
 
 def save_to_db(tosave):
     import lib.core.notif_agent as notif_agent

@@ -1,28 +1,19 @@
 import os
-import collections
 import subprocess
 import re
-import uuid
 
 import lib.core.settings as settings
 import lib.utils.logger as log
 
-import lib.utils.cron as cron
-import lib.utils.creator as creator
+from lib.core.state import State
+
 import lib.core.ad as ad
 import lib.core.source as source
 import lib.core.notif_agent as notif_agent
 
-from lib.core.state import State
 import lib.core.hooks as hooks
-
-import yaml
-# don't output yaml class tags
-def noop(self, *args, **kw):
-    pass
-
-yaml.emitter.Emitter.process_tag = noop
-
+import lib.utils.cron as cron
+import lib.utils.creator as creator
 
 class Task:
     def __init__(self,
@@ -101,7 +92,22 @@ def validate(task, sources, notif_agents, stay_alive = True):
             else:
                 raise ValueError(f"Error validating task '{task.id} - {task.name}': Notification Agent '{s}' not found")
 
-def prime(task, notify=True, recent_ads = 3):
+def refresh_cron(tasks=None):
+    if tasks is None:
+        tasks = State.get_tasks()
+
+    cron.clear()
+    schdules = []
+    for id in tasks:
+        task = tasks[id]
+        sched = (task.frequency, task.frequency_unit)
+        if not sched in schedules:
+            schedules.append(sched)
+
+    for s in schedules:
+        cron.add(s[0], s[1])
+
+def prime(task, notify=True, recent_ads=3):
     if recent_ads > 0:
         notify = True
     else:
@@ -109,7 +115,10 @@ def prime(task, notify=True, recent_ads = 3):
 
     core.run_task(task, notify=notify, recent_ads=recent_ads)
 
-def prime_all(tasks, notify=True, recent_ads=3):
+def prime_all(tasks=None, notify=True, recent_ads=3):
+    if tasks is None:
+        tasks = State.get_tasks()
+
     for id in tasks:
         prime(tasks[id], notify=notify, recent_ads=recent_ads)
 
@@ -198,10 +207,7 @@ def task_creator(task):
 
         if not cron.exists(task.frequency, task.frequency_unit):
             if creator.yes_no(f"Add cronjob for '{task.frequency} {task.frequency_unit}'", "y") == "y":
-                cron.clear()
-                for task_id in cur_tasks:
-                    add_task = cur_tasks[task_id]
-                    cron.add(add_task.frequency, add_task.frequency_unit)
+                refresh_cron()
 
         else:
             print (f"Cronjob already exists for '{task.frequency} {task.frequency_unit}'... skipping")

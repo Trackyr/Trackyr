@@ -1,19 +1,6 @@
-#!/usr/bin/env python3
-
-import sys
 import os
-from importlib import util, machinery
-
-import inspect
-import uuid
 import re
-
-import yaml
-# don't output yaml class tags
-def noop(self, *args, **kw):
-    pass
-
-yaml.emitter.Emitter.process_tag = noop
+from importlib import util, machinery
 
 import lib.core.settings as settings
 import lib.core as core

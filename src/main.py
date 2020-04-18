@@ -2,12 +2,6 @@
 # see 'main.py -h' for help
 # or 'main.py task|source|notification-agent -h'
 
-import yaml
-import sys
-import os
-import importlib
-import json
-import inspect
 import argparse
 
 import lib.core as core
@@ -16,9 +10,6 @@ import lib.core.cron as cron
 import lib.utils.cron as cronutils
 
 import lib.core.menu as menu
-
-#from lib.core.state import State
-#State.load()
 
 def main():
     parser = argparse.ArgumentParser()
@@ -66,7 +57,6 @@ def main():
     notif_agent_edit = notif_agent_subparsers.add_parser("edit", help="Edit a new notif_agent")
     notif_agent_list = source_subparsers.add_parser("list", help="List all notification agents")
 
-
     args = parser.parse_args()
 
     notify_recent = settings.get("recent_ads")
@@ -99,10 +89,10 @@ def main():
         menu.start()
 
     elif args.prime_all_tasks:
-        core.task.prime_all(core.get_tasks(), recent_ads=notify_recent)
+        task.prime_all(recent_ads=notify_recent)
 
     elif args.refresh_cron:
-        refresh_cron()
+        task.refresh_cron()
 
     else:
         parser.print_help()

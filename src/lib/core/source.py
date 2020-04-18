@@ -1,23 +1,13 @@
 import os
-import sys
-import collections
 import subprocess
 import re
-import uuid
-
-import yaml
-# don't output yaml class tags
-def noop(self, *args, **kw):
-    pass
-
-yaml.emitter.Emitter.process_tag = noop
-
 from importlib import util, machinery
 
 import lib.core.settings as settings
 import lib.utils.logger as log
 
 from lib.core.state import State
+
 import lib.core as core
 import lib.core.hooks as hooks
 
@@ -252,7 +242,10 @@ def delete_source():
                         do_delete_source(sources_list[tnum].id)
                         changes_made = True
 
-def get_tasks_using_source(source, tasks):
+def get_tasks_using_source(source, tasks = None):
+    if tasks is None:
+        tasks = State.get_tasks()
+
     used_by = []
 
     for id in tasks:
