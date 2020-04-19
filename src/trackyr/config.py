@@ -1,7 +1,7 @@
 import os
 import json
 
-with open('/etc/trackyr/config.json') as config_file:
+with open('/etc/trackyr-config.json') as config_file:
     config = json.load(config_file)
 
 class Config:
