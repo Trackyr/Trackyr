@@ -77,7 +77,6 @@ def set_level(level):
 def info(s, **kwargs):
  #   if not "logger" in globals():
 #        raise ValueError("Logger not loaded")
-    
     logger.rootLogger.info(s)
 
 def info_print(s, **kwargs):

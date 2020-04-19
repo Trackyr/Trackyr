@@ -2,17 +2,12 @@
 # see 'main.py -h' for help
 # or 'main.py task|source|notification-agent -h'
 
-import yaml
-import sys
-import os
-import importlib
-import json
-import inspect
 import argparse
 
 import lib.core as core
 import lib.core.settings as settings
-import lib.utils.cron as cron
+import lib.core.cron as cron
+import lib.utils.cron as cronutils
 
 import lib.core.menu as menu
 
@@ -62,7 +57,6 @@ def main():
     notif_agent_edit = notif_agent_subparsers.add_parser("edit", help="Edit a new notif_agent")
     notif_agent_list = source_subparsers.add_parser("list", help="List all notification agents")
 
-
     args = parser.parse_args()
 
     notify_recent = settings.get("recent_ads")
@@ -73,7 +67,7 @@ def main():
         if args.cron_job[0] == "path":
             cron.print_path()
         else:
-            core.cron(
+            cron.run(
                 args.cron_job[0],
                 args.cron_job[1],
                 notify=not args.skip_notification,
@@ -95,10 +89,10 @@ def main():
         menu.start()
 
     elif args.prime_all_tasks:
-        core.task.prime_all(core.get_tasks(), recent_ads=notify_recent)
+        task.prime_all(recent_ads=notify_recent)
 
     elif args.refresh_cron:
-        refresh_cron()
+        task.refresh_cron()
 
     else:
         parser.print_help()
@@ -154,14 +148,14 @@ def notif_agent_cmd(args):
         raise ValueError(f"Unknown notification-agent command: {args.notif_agent_cmd}")
 
 def refresh_cron():
-    cron.clear()
+    cronutils.clear()
     tasks = core.get_tasks()
     for id in tasks:
         t = tasks[id]
-        if cron.exists(t.frequency, t.frequency_unit):
+        if croutilsn.exists(t.frequency, t.frequency_unit):
             continue
 
-        cron.add(t.frequency, t.frequency_unit)
+        cronutils.add(t.frequency, t.frequency_unit)
 
 if __name__ == "__main__":
     main()
