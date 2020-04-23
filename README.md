@@ -1,5 +1,12 @@
 <h1>:robot: Trackyr</h1>
 
+
+<h2>Build Statuses</h2>
+
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/2abccb4b868f41c792ca213c647ca003)](https://www.codacy.com/gh/Trackyr/Trackyr?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=Trackyr/Trackyr&amp;utm_campaign=Badge_Grade)
+
+
+
 <h2>One-Command Installation</h2>
 
 Known to work on a fresh Ubuntu 18.04 LTS server
