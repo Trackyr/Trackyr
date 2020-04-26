@@ -9,7 +9,6 @@ import lib.utils.logger as log
 from lib.core.state import State
 
 import lib.core as core
-import lib.core.hooks as hooks
 
 import lib.utils.creator as creator
 import lib.utils.reflection as refl
@@ -271,6 +270,8 @@ def get_tasks_using_source(source, tasks = None):
     return used_by
 
 def do_delete_source(id):
+    import lib.core.hooks as hooks
+
     tasks = State.get_tasks()
     sources = State.get_sources()
 

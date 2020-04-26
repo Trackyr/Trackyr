@@ -4,7 +4,6 @@ from importlib import util, machinery
 
 import lib.core.settings as settings
 import lib.core as core
-import lib.core.hooks as hooks
 
 from lib.core.state import State
 from lib.core.config import Config
@@ -233,6 +232,8 @@ def get_tasks_using_notif_agent(notif_agent):
     return result
 
 def do_delete_notif_agent(id):
+    import lib.core.hooks as hooks
+
     tasks_dict = State.get_tasks()
     notif_agents_dict = State.get_notif_agents()
 

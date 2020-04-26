@@ -11,7 +11,6 @@ import lib.core.ad as ad
 import lib.core.source as source
 import lib.core.notif_agent as notif_agent
 
-import lib.core.hooks as hooks
 import lib.utils.cron as cron
 import lib.utils.creator as creator
 
@@ -502,6 +501,8 @@ def delete_task():
         do_delete_task(option.id)
 
 def do_delete_task(id):
+    import lib.core.hooks as hooks
+
     tasks = State.get_tasks()
     hooks.delete_task_model(tasks[id])
 
