@@ -5,8 +5,6 @@ import re
 import lib.core.settings as settings
 import lib.utils.logger as log
 
-from lib.core.state import State
-
 import lib.core.ad as ad
 import lib.core.source as source
 import lib.core.notif_agent as notif_agent
@@ -45,6 +43,7 @@ class Task:
         ):
 
         if id is None:
+            from lib.core.state import State
             id = creator.create_simple_id(State.get_tasks())
 
         self.id = id
@@ -58,6 +57,7 @@ class Task:
         self.exclude = exclude
 
     def __repr__(self):
+        from lib.core.state import State
         source_names = []
         sources = State.get_sources()
         for id in self.source_ids:
@@ -110,6 +110,7 @@ def validate(task, sources, notif_agents, stay_alive = True):
 
 def refresh_cron(tasks=None):
     if tasks is None:
+        from lib.core.state import State
         tasks = State.get_tasks()
 
     cron.clear()
@@ -136,6 +137,7 @@ def prime(task, notify=True, recent_ads=3):
 
 def prime_all(tasks=None, notify=True, recent_ads=3):
     if tasks is None:
+        from lib.core.state import State
         tasks = State.get_tasks()
 
     results = []
@@ -152,9 +154,11 @@ def prime_all(tasks=None, notify=True, recent_ads=3):
 
 # save file depending on the data mode
 def save():
+    from lib.core.state import State
     State.save_tasks()
 
 def list_tasks(pause_after = 0):
+    from lib.core.state import State
     tasks = State.get_tasks()
 
     i = 0
@@ -167,6 +171,7 @@ def list_tasks(pause_after = 0):
                 break
 
 def task_creator(task):
+    from lib.core.state import State
     cur_tasks = State.get_tasks()
     sources = State.get_sources()
     notif_agents = State.get_notif_agents()
@@ -243,6 +248,7 @@ def task_creator(task):
         return
 
 def create_task_add_sources(default=None):
+    from lib.core.state import State
     sources_dict = State.get_sources()
 
     default_str = ""
@@ -325,6 +331,7 @@ def create_task_add_sources(default=None):
     return result
 
 def create_task_add_notif_agents(default=None):
+    from lib.core.state import State
     notif_agents_dict = State.get_notif_agents()
 
     default_str = ""
@@ -419,6 +426,7 @@ def create_task():
     task_creator(Task())
 
 def edit_task():
+    from lib.core.state import State
     creator.print_title("Edit Task")
     task = creator.prompt_complex_dict("Choose a task", State.get_tasks(), "name", extra_options=["d"], extra_options_desc=["done"])
     if task == "d":
@@ -432,6 +440,8 @@ def choose_task(
         options_dict = None,
         confirm_msg = None
     ):
+
+    from lib.core.state import State
 
     tasks = State.get_tasks()
     creator.print_title(title)
@@ -501,6 +511,7 @@ def delete_task():
         do_delete_task(option.id)
 
 def do_delete_task(id):
+    from lib.core.state import State
     import lib.core.hooks as hooks
 
     tasks = State.get_tasks()
@@ -519,6 +530,8 @@ def run(
         save_ads=True,
         ignore_old_ads=False
     ):
+
+    from lib.core.state import State
 
     sources = State.get_sources()
     notif_agents = State.get_notif_agents()
