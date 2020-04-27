@@ -4,9 +4,7 @@ from importlib import util, machinery
 
 import lib.core.settings as settings
 import lib.core as core
-import lib.core.hooks as hooks
 
-from lib.core.state import State
 from lib.core.config import Config
 
 import lib.utils.reflection as refl
@@ -24,6 +22,7 @@ class NotifAgent:
         ):
 
         if id is None:
+            from lib.core.state import State
             id = creator.create_simple_id(State.get_tasks()),
 
         self.id = id
@@ -64,6 +63,8 @@ def load_modules(directory, modules_dir):
     return result
 
 def get_notif_agents_by_ids(ids):
+    from lib.core.state import State
+
     notif_agents = State.get_notif_agents()
 
     result = []
@@ -88,6 +89,8 @@ def get_enabled(notif_agents):
     return result
 
 def list_notif_agents(pause_after = 0):
+    from lib.core.state import State
+
     notif_agents = State.get_notif_agents()
 
     i = 0
@@ -101,9 +104,13 @@ def list_notif_agents(pause_after = 0):
 
 # save agents depending on data mode
 def save(notif_agents):
+    from lib.core.state import State
+
     State.save_notif_agents()
 
 def notif_agent_creator(notif_agent):
+    from lib.core.state import State
+
     n = notif_agent
 
     cur_notif_agents = State.get_notif_agents()
@@ -233,6 +240,9 @@ def get_tasks_using_notif_agent(notif_agent):
     return result
 
 def do_delete_notif_agent(id):
+    from lib.core.state import State
+    import lib.core.hooks as hooks
+
     tasks_dict = State.get_tasks()
     notif_agents_dict = State.get_notif_agents()
 
@@ -246,6 +256,8 @@ def do_delete_notif_agent(id):
     del notif_agents_dict[id]
 
 def do_delete_notif_agent_yaml(id):
+    from lib.core.state import State
+
     tasks_dict = State.get_tasks()
     notif_agents_dict = State.get_notif_agents()
 
@@ -258,6 +270,8 @@ def do_delete_notif_agent_yaml(id):
     del notif_agents_dict[id]
 
 def create_notif_agent_choose_module(default=None):
+    from lib.core.state import State
+
     modules = State.get_notif_agent_modules()
 
     default_str = ""
@@ -295,6 +309,8 @@ def create_notif_agent_choose_module(default=None):
                 return modules_list[module_index]
 
 def test_notif_agent(notif_agent):
+    from lib.core.state import State
+
     notif_agents = State.get_notif_agents()
     modules = State.get_notif_agent_modules()
 
