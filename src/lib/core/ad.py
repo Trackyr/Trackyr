@@ -3,10 +3,11 @@ import yaml
 import json
 
 import lib.utils.logger as log
-from lib.core.state import State
 from lib.core.config import Config
 
 def save():
+    from lib.core.state import State
+
     ads = State.get_ads()
     file = Config.ADS_FILE
 
@@ -14,6 +15,8 @@ def save():
         json.dump(ads, stream)
 
 def load():
+    from lib.core.state import State
+
     file = Config.ADS_FILE
 
     if not os.path.exists(file):
