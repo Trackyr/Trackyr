@@ -23,3 +23,7 @@ def get_remote_version(format=True):
 
     return remote
 
+if __name__ == "__main__":
+    local = get_local_version()
+    remote = get_remote_version()
+    print(f"{local}={remote}={local==remote}")
