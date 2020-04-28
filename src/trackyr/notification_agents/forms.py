@@ -11,3 +11,4 @@ class NotificationAgentForm(FlaskForm):
     icon = StringField('Icon')
     channel = StringField('Channel')
     submit = SubmitField('Save')
+    test = SubmitField('Test')

@@ -11,3 +11,4 @@ class SourceForm(FlaskForm):
     range = StringField('Range (km)')
     # subreddit = StringField('Subreddit (without "r/" , "r/localsales" --> "localsales")')
     submit = SubmitField('Save')
+    test = SubmitField('Test')
