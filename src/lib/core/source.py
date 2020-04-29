@@ -6,10 +6,7 @@ from importlib import util, machinery
 import lib.core.settings as settings
 import lib.utils.logger as log
 
-from lib.core.state import State
-
 import lib.core as core
-import lib.core.hooks as hooks
 
 import lib.utils.creator as creator
 import lib.utils.reflection as refl
@@ -47,6 +44,8 @@ class Source:
                 module = None,
                 module_properties = None
         ):
+
+        from lib.core.state import State
 
         if id is None:
             id =  creator.create_simple_id(State.get_sources())
@@ -90,9 +89,11 @@ def load_modules(directory, module_dir):
 
 
 def save():
+    from lib.core.state import State
     State.save_sources()
 
 def list_sources(pause_after = 0):
+    from lib.core.state import State
     sources = State.get_sources()
 
     i = 0
@@ -105,6 +106,8 @@ def list_sources(pause_after = 0):
                 break
 
 def source_creator(source):
+    from lib.core.state import State
+
     s = source
     sources = State.get_sources()
     modules = State.get_source_modules()
@@ -158,6 +161,8 @@ def source_creator(source):
     save()
 
 def create_source_choose_module(default=None):
+    from lib.core.state import State
+
     modules = State.get_source_modules()
 
     default_str = ""
@@ -200,6 +205,8 @@ def create_source():
 
 
 def edit_source():
+    from lib.core.state import State
+
     sources = State.get_sources()
     modules = State.get_source_modules()
 
@@ -211,6 +218,8 @@ def edit_source():
         source_creator(source)
 
 def delete_source():
+    from lib.core.state import State
+
     sources_dict = State.get_sources()
     tasks_dict = State.get_tasks()
 
@@ -260,6 +269,7 @@ def delete_source():
 
 def get_tasks_using_source(source, tasks = None):
     if tasks is None:
+        from lib.core.state import State
         tasks = State.get_tasks()
 
     used_by = []
@@ -271,6 +281,9 @@ def get_tasks_using_source(source, tasks = None):
     return used_by
 
 def do_delete_source(id):
+    import lib.core.hooks as hooks
+    from lib.core.state import State
+
     tasks = State.get_tasks()
     sources = State.get_sources()
 
@@ -284,6 +297,7 @@ def do_delete_source(id):
     del sources[id]
 
 def test_source(source):
+    from lib.core.state import State
     modules = State.get_source_modules()
 
     include = []
@@ -304,6 +318,21 @@ def test_source(source):
             save_ads=False
         )
 
+def test_webui_source(source):
+    from lib.core.state import State
+    modules = State.get_source_modules()
+
+    module = modules[source.module]
+
+    return scrape(
+            source,
+            None,
+            include="",
+            exclude="",
+            notify=False,
+            save_ads=False
+        )
+
 def scrape(
         source,
         notif_agents_list,
@@ -316,6 +345,8 @@ def scrape(
         save_ads=True,
         ignore_old_ads=False
     ):
+
+    from lib.core.state import State
 
     ads = State.get_ads()
     source_modules = State.get_source_modules()

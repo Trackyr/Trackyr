@@ -103,6 +103,5 @@ class State():
     def save_notif_agents():
         hooks.save_to_db(State._notif_agents)
 
-
 import lib.core.hooks as hooks
 State.load()
