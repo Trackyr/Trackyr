@@ -11,6 +11,8 @@ import lib.core as core
 import lib.utils.creator as creator
 import lib.utils.reflection as refl
 
+import lib.utils.collection_tools as ct
+
 class BaseSourceModule():
     def get_properties():
         pass

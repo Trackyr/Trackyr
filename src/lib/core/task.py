@@ -523,6 +523,8 @@ def do_delete_task(id):
 # recent_ads - only show the latest N ads, set to 0 to disable
 def run(
         task,
+        sources=None,
+        notif_agents=None,
         notify=True,
         force_tasks=False,
         force_agents=False,
@@ -533,8 +535,11 @@ def run(
 
     from lib.core.state import State
 
-    sources = State.get_sources()
-    notif_agents = State.get_notif_agents()
+    if sources is None:
+        sources = State.get_sources()
+
+    if notif_agents is None:
+        notif_agents = State.get_notif_agents()
 
     exclude_words = task.exclude
 
