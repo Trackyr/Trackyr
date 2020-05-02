@@ -10,4 +10,5 @@ class TaskForm(FlaskForm):
     colour_flag = StringField('Colour Flag')
     must_contain = StringField('Must Contain')
     exclude = StringField('Exclude')
+    prime_count = StringField('Number of ads to show when the task is created')
     submit = SubmitField('Save')

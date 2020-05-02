@@ -5,11 +5,14 @@ from trackyr.models import Task, Source, NotificationAgent
 from trackyr.tasks.forms import TaskForm
 
 from lib.utils import cron
+import lib.core.task as prime
+from lib.core.state import State
 
 tasks = Blueprint('tasks', __name__)
 
 @tasks.route("/tasks/create", methods=['GET', 'POST'])
 def create_tasks():
+    State.load()
     form = TaskForm()
     
     form.source.choices=get_source_choices()
@@ -25,14 +28,22 @@ def create_tasks():
                     exclude=form.exclude.data)
         db.session.add(task)
         db.session.commit()
+
+        State.refresh_tasks()
+
         cron.add(int(form.frequency.data), "minutes")
-        flash('Your task has been created!', 'success')
+        
+        prime_task = prime.Task(source_ids=[form.source.data], notif_agent_ids=[form.notification_agent.data], include=[form.must_contain.data], exclude=[form.exclude.data])
+        prime.prime(prime_task, notify=True, recent_ads=int(form.prime_count.data))
+
+        flash('Your task has been created!', 'top_flash_success')
         return redirect(url_for('main.tasks'))
     return render_template('create-task.html', title='Create a Task', 
                             form=form, legend='Create a Task')
     
 @tasks.route("/tasks/<int:task_id>/edit", methods=['GET', 'POST'])
 def edit_task(task_id):
+    State.load()
     task = Task.query.get_or_404(task_id)
     form = TaskForm()
 
@@ -49,7 +60,10 @@ def edit_task(task_id):
         task.must_contain = form.must_contain.data
         task.exclude = form.exclude.data
         db.session.commit()
-        flash('Your task has been updated!', 'success')
+
+        State.refresh_tasks()
+
+        flash('Your task has been updated!', 'top_flash_success')
         return redirect(url_for('main.tasks', task_id=task.id))
     elif request.method == 'GET':
         form.name.data = task.name
@@ -67,7 +81,10 @@ def delete_task(task_id):
     task = Task.query.get_or_404(task_id)
     db.session.delete(task)
     db.session.commit()
-    flash('Your task has been deleted.', 'success')
+
+    State.refresh_tasks()
+
+    flash('Your task has been deleted.', 'top_flash_success')
     return redirect(url_for('main.tasks'))
 
 def get_source_choices():

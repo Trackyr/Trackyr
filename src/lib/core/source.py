@@ -320,6 +320,21 @@ def test_source(source):
             save_ads=False
         )
 
+def test_webui_source(source):
+    from lib.core.state import State
+    modules = State.get_source_modules()
+
+    module = modules[source.module]
+
+    return scrape(
+            source,
+            None,
+            include="",
+            exclude="",
+            notify=False,
+            save_ads=False
+        )
+
 def scrape(
         source,
         notif_agents_list,
