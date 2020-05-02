@@ -6,11 +6,13 @@ from trackyr.tasks.forms import TaskForm
 
 from lib.utils import cron
 import lib.core.task as prime
+from lib.core.state import State
 
 tasks = Blueprint('tasks', __name__)
 
 @tasks.route("/tasks/create", methods=['GET', 'POST'])
 def create_tasks():
+    State.load()
     form = TaskForm()
     
     form.source.choices=get_source_choices()
@@ -27,6 +29,8 @@ def create_tasks():
         db.session.add(task)
         db.session.commit()
 
+        State.refresh_tasks()
+
         cron.add(int(form.frequency.data), "minutes")
         
         prime_task = prime.Task(source_ids=[form.source.data], notif_agent_ids=[form.notification_agent.data], include=[form.must_contain.data], exclude=[form.exclude.data])
@@ -39,6 +43,7 @@ def create_tasks():
     
 @tasks.route("/tasks/<int:task_id>/edit", methods=['GET', 'POST'])
 def edit_task(task_id):
+    State.load()
     task = Task.query.get_or_404(task_id)
     form = TaskForm()
 
@@ -55,6 +60,9 @@ def edit_task(task_id):
         task.must_contain = form.must_contain.data
         task.exclude = form.exclude.data
         db.session.commit()
+
+        State.refresh_tasks()
+
         flash('Your task has been updated!', 'top_flash_success')
         return redirect(url_for('main.tasks', task_id=task.id))
     elif request.method == 'GET':
@@ -73,6 +81,9 @@ def delete_task(task_id):
     task = Task.query.get_or_404(task_id)
     db.session.delete(task)
     db.session.commit()
+
+    State.refresh_tasks()
+
     flash('Your task has been deleted.', 'top_flash_success')
     return redirect(url_for('main.tasks'))
 

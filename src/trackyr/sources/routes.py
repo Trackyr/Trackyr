@@ -5,11 +5,13 @@ from trackyr.models import Source
 from trackyr.sources.forms import SourceForm
 
 import lib.core.source as prime
+from lib.core.state import State
 
 sources = Blueprint('sources', __name__)
 
 @sources.route("/sources/create", methods=['GET', 'POST'])
 def create_source():
+    State.load()
     form = SourceForm()
     if form.validate_on_submit():
         if form.test.data:
@@ -41,6 +43,9 @@ def create_source():
                             )
             db.session.add(source)
             db.session.commit()
+
+            State.refresh_sources()
+
             flash('Your source has been saved!', 'top_flash_success')
             return redirect(url_for('main.sources'))
     return render_template('create-source.html', title='Create Source', 
@@ -48,6 +53,7 @@ def create_source():
 
 @sources.route("/sources/<int:source_id>/edit", methods=['GET', 'POST'])
 def edit_source(source_id):
+    State.load()
     source = Source.query.get_or_404(source_id)
     form = SourceForm()
     if form.validate_on_submit():
@@ -78,6 +84,9 @@ def edit_source(source_id):
             source.range = form.range.data
             # source.subreddit = form.subreddit.data
             db.session.commit()
+
+            State.refresh_sources()
+
             flash('Your source has been updated!', 'top_flash_success')
             return redirect(url_for('main.sources', source_id=source.id))
     elif request.method == 'GET':
@@ -95,5 +104,8 @@ def delete_source(source_id):
     source = Source.query.get_or_404(source_id)
     db.session.delete(source)
     db.session.commit()
+
+    State.refresh_sources()
+
     flash('Your source has been deleted.', 'top_flash_success')
     return redirect(url_for('main.sources'))

@@ -7,11 +7,13 @@ import json
 import requests
 
 import lib.core.notif_agent as notifAgent
+from lib.core.state import State
 
 notification_agents = Blueprint('notification_agents', __name__)
 
 @notification_agents.route("/notification_agents/create", methods=['GET', 'POST'])
 def create_notification_agents():
+    State.load()
     form = NotificationAgentForm()
     if form.validate_on_submit():
         if form.test.data:
@@ -40,6 +42,9 @@ def create_notification_agents():
                                                     channel=form.channel.data)
             db.session.add(notification_agent)
             db.session.commit()
+
+            State.refresh_notif_agents()
+
             flash('Your notification agent has been saved!', 'top_flash_success')
             return redirect(url_for('main.notification_agents'))
     return render_template('create-notification-agent.html', title='Create Notification Agent', 
@@ -47,6 +52,7 @@ def create_notification_agents():
 
 @notification_agents.route("/notification_agents/<int:notification_agent_id>/edit", methods=['GET', 'POST'])
 def edit_notification_agent(notification_agent_id):
+    State.load()
     notification_agents = NotificationAgent.query.get_or_404(notification_agent_id)
     form = NotificationAgentForm()
     if form.validate_on_submit():
@@ -58,6 +64,9 @@ def edit_notification_agent(notification_agent_id):
         notification_agents.icon = form.icon.data
         notification_agents.channel = form.channel.data
         db.session.commit()
+
+        State.refresh_notif_agents()
+
         flash('Your notification agent has been updated!', 'top_flash_success')
         return redirect(url_for('main.notification_agents', notification_agent_id=notification_agents.id))
     elif request.method == 'GET':
@@ -75,5 +84,8 @@ def delete_notification_agent(notification_agent_id):
     notification_agent = NotificationAgent.query.get_or_404(notification_agent_id)
     db.session.delete(notification_agent)
     db.session.commit()
+
+    State.refresh_notif_agents()
+
     flash('Your notification agent has been deleted.', 'top_flash_success')
     return redirect(url_for('main.notification_agents'))
