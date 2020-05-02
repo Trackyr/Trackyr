@@ -27,14 +27,17 @@ class State():
 
     def refresh_tasks():
         import lib.core.task as task
+        import lib.core.hooks as hooks
         State._tasks = hooks.load_core_tasks()
 
     def refresh_sources():
         import lib.core.source as source
+        import lib.core.hooks as hooks
         State._sources = hooks.load_core_sources()
 
     def refresh_notif_agents():
         import lib.core.notif_agent as notif_agent
+        import lib.core.hooks as hooks
         State._notif_agents = hooks.load_core_notif_agents()
 
     def refresh_source_modules():
@@ -62,6 +65,7 @@ class State():
         State._tasks = tasks
 
     def save_tasks():
+        import lib.core.hooks as hooks
         hooks.save_to_db(State._tasks)
 
     def get_sources():
@@ -81,6 +85,7 @@ class State():
         State._sources = sources
 
     def save_sources():
+        import lib.core.hooks as hooks
         hooks.save_to_db(State._sources)
 
     def get_notif_agents():
@@ -101,6 +106,7 @@ class State():
         State._notif_agents = notif_agents
 
     def save_notif_agents():
+        import lib.core.hooks as hooks
         hooks.save_to_db(State._notif_agents)
 
 import lib.core.hooks as hooks
