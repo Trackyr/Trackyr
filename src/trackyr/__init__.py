@@ -16,12 +16,15 @@ def create_app(config_class=Config):
     from trackyr.sources.routes import sources
     from trackyr.notification_agents.routes import notification_agents
     from trackyr.tasks.routes import tasks
+    from trackyr.trackyr_config.routes import trackyr_config
     from trackyr.errors.handlers import errors
 
     app.register_blueprint(main)
     app.register_blueprint(sources)
     app.register_blueprint(notification_agents)
     app.register_blueprint(tasks)
+    app.register_blueprint(trackyr_config)
     app.register_blueprint(errors)
 
     return app
+    

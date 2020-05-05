@@ -26,6 +26,6 @@ def sources():
     sources = Source.query.all()
     return render_template('sources.html', title='Sources', sources=sources)
 
-@main.route("/trackyr_config")
+@main.route("/trackyr_config", methods=['GET', 'POST'])
 def trackyr_config():
     return render_template('trackyr-config.html', title='Config')

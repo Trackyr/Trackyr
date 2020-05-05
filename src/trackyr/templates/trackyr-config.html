@@ -1,5 +1,9 @@
 {% extends "layout.html" %}
 {% block content %}
-    <h1>Trackyr Config</h1>
-    <p>This is where we will set global variables.</p>
+    <h1>{{ title }}</h1>
+
+    <div class="content-section">
+        <h3>Update Available</h3>
+        <a class="btn btn-success btm-sm mt-1 mb-1" href="{{ url_for('trackyr_config.update') }}">Update</a>
+    </div>
 {% endblock content %}
