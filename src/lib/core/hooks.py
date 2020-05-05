@@ -1,5 +1,7 @@
 from copy import deepcopy
 
+import sqlalchemy;
+
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
 
@@ -12,7 +14,6 @@ from trackyr.config import Config
 
 engine = create_engine(Config.SQLALCHEMY_DATABASE_URI)
 session = Session(engine)
-
 
 def to_core_tasks(task_models):
     tasks = {}
@@ -209,16 +210,28 @@ def delete_notif_agent_model(core_notif_agent):
     session.delete(notif_agent_model)
 
 def load_core_tasks():
-    task_models = session.query(models.Task).all()
-    return to_core_tasks(task_models)
+    if (engine.has_table("tasks")):
+        task_models = session.query(models.Task).all()
+        return to_core_tasks(task_models)
+
+    else:
+        return []
 
 def load_core_sources():
-    source_models = session.query(models.Source).all()
-    return to_core_sources(source_models)
+    if (engine.has_table("sources")):
+        source_models = session.query(models.Source).all()
+        return to_core_sources(source_models)
+
+    else:
+        return []
 
 def load_core_notif_agents():
-    notif_agent_models = session.query(models.NotificationAgent).all()
-    return to_core_notif_agents(notif_agent_models)
+    if (engine.has_table("notification_agents")):
+        notif_agent_models = session.query(models.NotificationAgent).all()
+        return to_core_notif_agents(notif_agent_models)
+
+    else:
+        return []
 
 def save_to_db(tosave):
     to_model_type = {
