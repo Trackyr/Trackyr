@@ -1,5 +1,4 @@
 from flask import (Blueprint, flash, redirect, render_template)
-from trackyr.trackyr_config.forms import ConfigForm
 
 import lib.core.version as versionCheck
 import subprocess
