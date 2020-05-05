@@ -5,7 +5,7 @@ def is_latest_version():
 
 def get_local_version(format=True):
     local = subprocess.check_output(
-            ["git", "describe", "--always"]
+            ["git", "rev-parse", "HEAD"]
         )
 
     if format:
@@ -15,7 +15,7 @@ def get_local_version(format=True):
 
 def get_remote_version(format=True):
     remote = subprocess.check_output(
-            ["git", "describe", "--always", "origin/master"]
+            ["git", "ls-remote", "https://github.com/Trackyr/Trackyr.git", "HEAD"]
         )
 
     if format:
