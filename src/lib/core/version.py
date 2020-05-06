@@ -20,6 +20,7 @@ def get_remote_version(format=True):
 
     if format:
         remote = str(remote, "utf-8").strip()
+        remote = remote[:-5]
 
     return remote
 
