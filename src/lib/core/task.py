@@ -39,7 +39,8 @@ class Task:
             source_ids = None,
             notif_agent_ids = None,
             include = None,
-            exclude = None
+            exclude = None,
+            colour_flag = ""
         ):
 
         if id is None:
@@ -55,6 +56,7 @@ class Task:
         self.notif_agent_ids = notif_agent_ids
         self.include = include
         self.exclude = exclude
+        self.colour_flag = colour_flag
 
     def __repr__(self):
         from lib.core.state import State
@@ -76,6 +78,7 @@ sources: {','.join(source_names)}
 notification agents: {','.join(notif_agent_names)}
 include: {','.join(self.include)}
 exclude: {','.join(self.exclude)}
+colour flag: {','.join(self.colour_flag)}
 """
 
     # freq: int
@@ -566,6 +569,7 @@ def run(
             task_notif_agents,
             include=task.include,
             exclude=task.exclude,
+            colour_flag=task.colour_flag,
             notify=notify,
             force_tasks=force_tasks,
             force_agents=force_agents,
@@ -573,6 +577,7 @@ def run(
             save_ads=save_ads,
             ignore_old_ads=ignore_old_ads
         )
+        print (source_results[source_id].embed_colour)
 
     if save_ads:
         ad.save()

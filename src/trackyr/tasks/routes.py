@@ -33,14 +33,15 @@ def create_tasks():
 
         cron.add(int(form.frequency.data), "minutes")
         
-        prime_task = prime.Task(source_ids=[form.source.data], notif_agent_ids=[form.notification_agent.data], include=[form.must_contain.data], exclude=[form.exclude.data])
+        prime_task = prime.Task(source_ids=[form.source.data], notif_agent_ids=[form.notification_agent.data], include=[form.must_contain.data], exclude=[form.exclude.data], colour_flag=form.colour_flag.data)
         prime.prime(prime_task, notify=True, recent_ads=int(form.prime_count.data))
 
         flash('Your task has been created!', 'top_flash_success')
+        
         return redirect(url_for('main.tasks'))
     return render_template('create-task.html', title='Create a Task', 
                             form=form, legend='Create a Task')
-    
+
 @tasks.route("/tasks/<int:task_id>/edit", methods=['GET', 'POST'])
 def edit_task(task_id):
     State.load()
@@ -90,7 +91,7 @@ def delete_task(task_id):
 def get_source_choices():
     source_choices = db.session.query(Source.name).all()
     return [(g.id, g.name) for g in Source.query.order_by('name')]
-    
+
 def get_notification_agents_choices():
     notification_agents_choices = db.session.query(NotificationAgent.name).all()
     return [(g.id, g.name) for g in NotificationAgent.query.order_by('name')]

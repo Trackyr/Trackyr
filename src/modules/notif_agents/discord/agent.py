@@ -41,7 +41,7 @@ class DiscordClient():
         self.webhook.send(content=message, username=self.bot_name)
 
     # Sends a Discord message with links and info of new ads
-    def send_ads(self, ad_dict, discord_title, **kwargs):
+    def send_ads(self, ad_dict, discord_title, colour_flag, **kwargs):
         global webhook_cache
 
         if not "webhook_cache" in globals():
@@ -60,7 +60,7 @@ class DiscordClient():
         result = self.webhook.send(content=f"**{title}**", username=self.bot_name)
 
         for ad_id in ad_dict:
-            embed = self.__create_discord_embed(ad_dict, ad_id)
+            embed = self.__create_discord_embed(ad_dict, ad_id, colour_flag)
 
             self.webhook.send(embed=embed, username=self.bot_name)
 
@@ -70,10 +70,11 @@ class DiscordClient():
 
         return 'One New ' + discord_title + ' Ad Found!'
 
-    def __create_discord_embed(self, ad_dict, ad_id):
-
+    def __create_discord_embed(self, ad_dict, ad_id, colour_flag):
         embed = discord.Embed()
-        embed.colour = discord.Colour.green()
+
+        embed.colour = int(colour_flag, base=16)
+
         embed.url=ad_dict[ad_id]['Url']
 
         try:
@@ -108,4 +109,3 @@ class DiscordClient():
             embed.title = f"{ad_dict[ad_id]['Title']}"
 
         return embed
-

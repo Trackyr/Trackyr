@@ -331,6 +331,7 @@ def test_webui_source(source):
             None,
             include="",
             exclude="",
+            colour_flag="",
             notify=False,
             save_ads=False
         )
@@ -340,6 +341,7 @@ def scrape(
         notif_agents_list,
         include=[],
         exclude=[],
+        colour_flag="",
         notify=True,
         force_tasks=False,
         force_agents=False,
@@ -408,7 +410,7 @@ def scrape(
                     if agent.enabled == False and force_agents == True:
                         log.info_print("Notification agent was disabled but forcing...")
 
-                    notif_agent_modules[agent.module].send_ads(ads_to_send, ad_title, **agent.module_properties)
+                    notif_agent_modules[agent.module].send_ads(ads_to_send, ad_title, colour_flag, **agent.module_properties)
 
                 else:
                     log.info_print(f"Skipping... Notification agent disabled: {agent.name}")

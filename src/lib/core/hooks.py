@@ -41,7 +41,8 @@ def to_new_core_task(task_model):
             source_ids = t.source,
             notif_agent_ids = t.notification_agent,
             include = t.must_contain.split(","),
-            exclude = t.exclude.split(",")
+            exclude = t.exclude.split(","),
+            colour_flag = t.colour_flag
         )
 
 def to_new_task_model(core_task):
