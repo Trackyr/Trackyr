@@ -393,8 +393,8 @@ def scrape(
         ads_to_send = new_ads
 
         if recent_ads > 0:
-            # only notify the last notify_recent new_ads
-            ads_to_send = ct.get_last_items(recent_ads, new_ads)
+            # only notify the most recent notify_recent new_ads
+            ads_to_send = ct.get_most_recent_items(recent_ads, new_ads)
             log.debug(f"Recent ads set to: {recent_ads} got: {len(ads_to_send)}")
             log.info_print(f"Total ads to notify about: {len(ads_to_send)}")
 
