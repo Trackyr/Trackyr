@@ -79,6 +79,7 @@ sudo chown -R $USERVAR:$USERVAR $TRACKYR_LOCAL_PATH
 
 sudo touch $TRACKYR_LOCAL_PATH/src/ads.json
 sudo chmod a+w $TRACKYR_LOCAL_PATH/src/ads.json
+sudo chown $USERVAR:$USERVAR $TRACKYR_LOCAL_PATH/src/ads.json
 echo '{}' >> $TRACKYR_LOCAL_PATH/src/ads.json
 
 sleep 1
