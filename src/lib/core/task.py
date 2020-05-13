@@ -577,7 +577,6 @@ def run(
             save_ads=save_ads,
             ignore_old_ads=ignore_old_ads
         )
-        print (source_results[source_id].embed_colour)
 
     if save_ads:
         ad.save()
