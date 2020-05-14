@@ -1,7 +1,7 @@
 {% include 'layout.html' %}
 {% block scripts %}
     {{ colorpicker.loader() }}
-    {{ colorpicker.picker(ids=[".cp"]) }}
+    {{ colorpicker.picker(ids=[".cp"], default_color='rgb(255,140,0)', color_format='hex', showAlpha='false', showButtons='false') }}
 {% endblock %}
 
 {% block content %}
@@ -32,7 +32,6 @@
                                 {% for error in form.frequency.errors %}
                                     <span>{{ error }}</span>
                                 {% endfor %}
-                            </div>
                         {% else %}
                             {{ form.frequency(class="form-control form-control-lg") }}
                         {% endif %}
