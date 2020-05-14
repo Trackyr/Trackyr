@@ -2,6 +2,8 @@ from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from trackyr.config import Config
 from flask_migrate import Migrate
+from flask_bootstrap import Bootstrap
+from flask_colorpicker import colorpicker
 
 db = SQLAlchemy()
 
@@ -11,6 +13,9 @@ def create_app(config_class=Config):
 
     db.init_app(app)
     migrate = Migrate(app,db)
+    Bootstrap(app)
+    colorpicker(app)
+
 
     from trackyr.main.routes import main
     from trackyr.sources.routes import sources

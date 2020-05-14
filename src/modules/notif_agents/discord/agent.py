@@ -73,6 +73,8 @@ class DiscordClient():
     def __create_discord_embed(self, ad_dict, ad_id, colour_flag):
         embed = discord.Embed()
 
+        colour_flag = colour_flag.lstrip("#")
+
         embed.colour = int(colour_flag, base=16)
 
         embed.url=ad_dict[ad_id]['Url']
