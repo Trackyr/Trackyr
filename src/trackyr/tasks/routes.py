@@ -17,13 +17,18 @@ def create_tasks():
     
     form.source.choices=get_source_choices()
     form.notification_agent.choices=get_notification_agents_choices()
-    
+
+        if form.colour_flag.data == "":
+            cf="#ff8c00"
+        else:
+            cf=form.colour_flag.data
+
     if form.validate_on_submit():
         task = Task(name=form.name.data, 
                     frequency=form.frequency.data, 
                     source=form.source.data,
                     notification_agent=form.notification_agent.data,
-                    colour_flag=form.colour_flag.data, 
+                    colour_flag=cf, 
                     must_contain=form.must_contain.data, 
                     exclude=form.exclude.data)
         db.session.add(task)

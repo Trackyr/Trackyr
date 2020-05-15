@@ -74,7 +74,8 @@ class DiscordClient():
         embed = discord.Embed()
 
         colour_flag = colour_flag.lstrip("#")
-
+        if colour_flag == "":
+            colour_flag="ff8c00"
         embed.colour = int(colour_flag, base=16)
 
         embed.url=ad_dict[ad_id]['Url']
@@ -91,7 +92,7 @@ class DiscordClient():
                 date=ad_dict[ad_id]['Date']
                 date_trunct=(date[:75] + '..') if len(date) > 75 else date
                 embed.add_field(name="Date", value=date_trunct)
-            
+
             if ad_dict[ad_id]['Price'] != "":
                 price=ad_dict[ad_id]['Price']
                 price_trunct=(price[:25] + '..') if len(price) > 25 else price
@@ -106,7 +107,7 @@ class DiscordClient():
                 details=ad_dict[ad_id]['Details']
                 details_trunct=(details[:100] + '..') if len(details) > 100 else details
                 embed.add_field(name="Details", value=details_trunct, inline=False)
-            
+
         except KeyError:
             embed.title = f"{ad_dict[ad_id]['Title']}"
 
