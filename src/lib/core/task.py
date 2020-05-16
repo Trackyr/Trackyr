@@ -117,7 +117,7 @@ def refresh_cron(tasks=None):
         tasks = State.get_tasks()
 
     cron.clear()
-    schdules = []
+    schedules = []
     for id in tasks:
         task = tasks[id]
         sched = (task.frequency, task.frequency_unit)
