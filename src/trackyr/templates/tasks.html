@@ -23,16 +23,26 @@
                 <tr>
                     <td>{{ task.name }}</td>
                     <td>{{ task.frequency }} Minutes</td>
-                    {% for source in sources %}
-                        {% if task.source == source.id %}
-                            <td>{{ source.name }}</td>
-                        {% endif %}
-                    {% endfor %}
-                    {% for notification_agent in notification_agents %}
-                        {% if task.notification_agent == notification_agent.id %}
-                            <td>{{ notification_agent.name }}</td>
-                        {% endif %}
-                    {% endfor %}
+                    <td>
+                        {% for source in sources %}
+                            {% for t in task.source %}
+                                {% if t == source.id %}
+                                    {{ source.name }}
+                                    {{ "," if not loop.last }}
+                                {% endif %}
+                            {% endfor %}
+                        {% endfor %}
+                    </td>
+                    <td>
+                        {% for notification_agent in notification_agents %}
+                            {% for n in task.notification_agent %}
+                                {% if n == notification_agent.id %}
+                                    {{ notification_agent.name }}
+                                    {{ "," if not loop.last }}
+                                {% endif %}
+                            {% endfor %}
+                        {% endfor %}
+                    </td>
                     <td>{{ task.must_contain }}</td>
                     <td>{{ task.exclude }}</td>
                     <td><a class="btn btn-secondary btm-sm mt-1 mb-1" href="{{ url_for('tasks.edit_task', task_id=task.id) }}">Edit</a></td>

@@ -50,6 +50,12 @@
                         {% endif %}
                     </div>
                     <div class="form-group">
+                        {{ form.add_source(class="btn btn-outline-info") }}
+                    </div>
+                    <div class="form-group">
+                        {{ form.source_flist() }}
+                    </div>
+                    <div class="form-group">
                         {{ form.notification_agent.label(class="form-control-label") }}
                         {% if form.notification_agent.errors %}
                             {{ form.notification_agent(class="form-control form-control-lg is-invalid") }}
@@ -61,6 +67,9 @@
                         {% else %}
                             {{ form.notification_agent(class="form-control form-control-lg") }}
                         {% endif %}
+                    </div>
+                    <div class="form-group">
+                        {{ form.add_notification_agent(class="btn btn-outline-info") }}
                     </div>
                     <div class="form-group">
                         {{ form.colour_flag.label(class="form-control-label") }}
@@ -122,4 +131,30 @@
             </form>
         </div>
     </div>
+
+    <script>
+        $(document).ready(function(){
+            $("#standard").change(function(){
+                var std = $(this).find('option:selected').val(); //capture value from form.
+                    $.getJSON("{{url_for('modifywps')}}",{'std':std}, function(result){ //use captured value to sent to view via a dictionary {'key':val}, via url_for('view_name')
+                        $.each(result, function(i, field){ //value you want will be back here and gone through..
+                            $.each(field, function(j,k){
+                                $("#wps").append('<option value="'+j+'">'+k+'</option>'); // use jQuery to insert it back into the form, via the form name you gave in jinja templating
+                            });
+                        });
+                    });
+            });
+
+            $("#wps").change(function(){
+                var std = $('#wps').find('option:selected').val(); // capture value from form.
+                    $.getJSON("{{url_for('modifyprocess')}}",{'std':std}, function(result){
+                        $.each(result, function(i, field){
+                            $.each(field, function(j,k){
+                                $("#processes").append('<option value="'+j+'">'+k+'</option>');
+                            });
+                        });
+                    });
+            });
+        });
+    </script>
 {% endblock content %}

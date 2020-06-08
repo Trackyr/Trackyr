@@ -351,6 +351,7 @@ def scrape(
     ):
 
     from lib.core.state import State
+    import lib.core.notif_agent as notif_agent
 
     ads = State.get_ads()
     source_modules = State.get_source_modules()
