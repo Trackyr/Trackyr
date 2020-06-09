@@ -37,30 +37,54 @@
                         {% endif %}
                     </div>
                     <div class="form-group">
-                        {{ form.source.label(class="form-control-label") }}
-                        {% if form.source.errors %}
-                            {{ form.source(class="form-control form-control-lg is-invalid") }}
-                            <div class="invalid-feedback">
-                                {% for error in form.source.errors %}
-                                    <span>{{ error }}</span>
+                        {{ form.sources.label(class="form-control-label") }}
+                        <div data-toggle="fieldset" id="fieldset">
+                            <div id="sources">
+                                {% for s in form.sources %}
+                                    <div class="container" data-toggle="fieldset-entry">
+                                        <div class="row d-flex justify-content-center">
+                                            <div class="col-md-11">
+                                                {% if action == 'edit' %}
+                                                    {% set z = sourceform.source_select.process_data(source_data[loop.index0]) %}
+                                                {% endif %}
+                                                
+                                                {{ sourceform.source_select(id="source_select-{{ loop.index0 }}", class="form-control form-control-lg") }}
+                                                <p>
+                                            </div>
+                                            <div class="col-md-1">
+                                                <button type="button" class="btn btn-danger" data-toggle="fieldset-remove-row" id="module-{{ loop.index0 }}-remove"> - </button>
+                                            </div>
+                                        </div>
+                                    </div>
                                 {% endfor %}
                             </div>
-                        {% else %}
-                            {{ form.source(class="form-control form-control-lg") }}
-                        {% endif %}
+                            <button type="button" class="btn btn-success" data-toggle="fieldset-add-row" data-target="#fieldset">Add another source</button>
+                        </div>
                     </div>
                     <div class="form-group">
-                        {{ form.notification_agent.label(class="form-control-label") }}
-                        {% if form.notification_agent.errors %}
-                            {{ form.notification_agent(class="form-control form-control-lg is-invalid") }}
-                            <div class="invalid-feedback">
-                                {% for error in form.notification_agent.errors %}
-                                    <span>{{ error }}</span>
+                        {{ form.notification_agents.label(class="form-control-label") }}
+                        <div data-toggle="notification_agent_fieldset" id="notification_agent_fieldset">
+                            <div id="notification-agents">
+                                {% for s in form.notification_agents %}
+                                    <div class="container" data-toggle="notification_agent_fieldset-entry">
+                                        <div class="row d-flex justify-content-center">
+                                            <div class="col-md-11">
+                                                {% if action == 'edit' %}
+                                                    {% set z = notificationagentform.notification_agent_select.process_data(notification_agent_data[loop.index0]) %}
+                                                {% endif %}
+                                                
+                                                {{ notificationagentform.notification_agent_select(id="notification_agent_select-{{ loop.index0 }}", class="form-control form-control-lg") }}
+                                                <p>
+                                            </div>
+                                            <div class="col-md-1">
+                                                <button type="button" class="btn btn-danger" data-toggle="notification_agent_fieldset-remove-row" id="module-{{ loop.index0 }}-remove"> - </button>
+                                            </div>
+                                        </div>
+                                    </div>
                                 {% endfor %}
                             </div>
-                        {% else %}
-                            {{ form.notification_agent(class="form-control form-control-lg") }}
-                        {% endif %}
+                            <button type="button" class="btn btn-success" data-toggle="notification_agent_fieldset-add-row" data-target="#notification_agent_fieldset">Add another notification agent</button>
+                        </div>
                     </div>
                     <div class="form-group">
                         {{ form.colour_flag.label(class="form-control-label") }}

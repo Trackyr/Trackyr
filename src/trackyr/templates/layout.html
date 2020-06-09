@@ -111,5 +111,79 @@
             });
             $("#notificationAgentSelection").trigger("change");
         </script>
+            <script src="//ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+            <script>
+                $(function() {
+                    $("div[data-toggle=fieldset]").each(function() {
+                        var $this = $(this);
+                            
+                        //Add new entry
+                        $this.find("button[data-toggle=fieldset-add-row]").click(function() {
+                            var target = $($(this).data("target"));
+                            //console.log(target);
+                            var oldrow = target.find("[data-toggle=fieldset-entry]:last");
+                            var row = oldrow.clone(true, true);
+                            var elem_id = row.find(":input")[0].id;
+                            var elem_prefix = elem_id.replace(/(.*)-(\d{1,4})/m, '$1')// max 4 digits for ids in list
+                            var elem_num = parseInt(elem_id.replace(/(.*)-(\d{1,4})/m, '$2')) + 1;
+                            //console.log(elem_prefix);
+                            //console.log(elem_num);
+                            row.children(':input').each(function() {
+                                var id = $(this).attr('id').replace(elem_prefix+'-' + (elem_num - 1), elem_prefix+'-' + (elem_num));
+                                $(this).attr('name', id).attr('id', id).val('').removeAttr("checked");
+                            });
+                            row.children('label').each(function() {
+                                var id = $(this).attr('for').replace(elem_prefix+'-' + (elem_num - 1), elem_prefix+'-' + (elem_num));
+                                $(this).attr('for', id);
+                            });
+                            row.show();
+                            oldrow.after(row);
+                        }); //End add new entry
+                        //Remove row
+                        $this.find("button[data-toggle=fieldset-remove-row]").click(function() {
+                            if($this.find("[data-toggle=fieldset-entry]").length > 1) {
+                                var thisRow = $(this).closest("[data-toggle=fieldset-entry]");
+                                thisRow.remove();
+                            }
+                        }); //End remove row
+                    });
+                });
+        
+                $(function() {
+                    $("div[data-toggle=notification_agent_fieldset]").each(function() {
+                        var $this = $(this);
+                            
+                        //Add new entry
+                        $this.find("button[data-toggle=notification_agent_fieldset-add-row]").click(function() {
+                            var target = $($(this).data("target"));
+                            //console.log(target);
+                            var oldrow = target.find("[data-toggle=notification_agent_fieldset-entry]:last");
+                            var row = oldrow.clone(true, true);
+                            var elem_id = row.find(":input")[0].id;
+                            var elem_prefix = elem_id.replace(/(.*)-(\d{1,4})/m, '$1')// max 4 digits for ids in list
+                            var elem_num = parseInt(elem_id.replace(/(.*)-(\d{1,4})/m, '$2')) + 1;
+                            //console.log(elem_prefix);
+                            //console.log(elem_num);
+                            row.children(':input').each(function() {
+                                var id = $(this).attr('id').replace(elem_prefix+'-' + (elem_num - 1), elem_prefix+'-' + (elem_num));
+                                $(this).attr('name', id).attr('id', id).val('').removeAttr("checked");
+                            });
+                            row.children('label').each(function() {
+                                var id = $(this).attr('for').replace(elem_prefix+'-' + (elem_num - 1), elem_prefix+'-' + (elem_num));
+                                $(this).attr('for', id);
+                            });
+                            row.show();
+                            oldrow.after(row);
+                        }); //End add new entry
+                        //Remove row
+                        $this.find("button[data-toggle=notification_agent_fieldset-remove-row]").click(function() {
+                            if($this.find("[data-toggle=notification_agent_fieldset-entry]").length > 1) {
+                                var thisRow = $(this).closest("[data-toggle=notification_agent_fieldset-entry]");
+                                thisRow.remove();
+                            }
+                        }); //End remove row
+                    });
+                });
+            </script>
     </body>
 </html>

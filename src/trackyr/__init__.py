@@ -16,7 +16,6 @@ def create_app(config_class=Config):
     Bootstrap(app)
     colorpicker(app)
 
-
     from trackyr.main.routes import main
     from trackyr.sources.routes import sources
     from trackyr.notification_agents.routes import notification_agents
