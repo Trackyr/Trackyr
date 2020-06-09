@@ -2,7 +2,6 @@ from flask_wtf import FlaskForm
 from wtforms import FieldList, FormField, StringField, SelectField, SubmitField
 from wtforms.validators import DataRequired
 from wtforms import Form as NoCsrfForm
-from wtforms.utils import unset_value
 
 class AddSourceForm(NoCsrfForm):
     source_select = SelectField('Source', validators=[DataRequired()], coerce=int)

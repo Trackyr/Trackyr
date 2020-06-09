@@ -1,8 +1,6 @@
 from flask import render_template, request, Blueprint
 from trackyr.models import NotificationAgent, Source, Task
 
-import lib.utils.logger as log
-
 main = Blueprint('main', __name__)
 
 @main.route("/")

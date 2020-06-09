@@ -1,5 +1,5 @@
 from flask import (Blueprint, abort, flash, redirect, render_template, request, url_for)
-from wtforms import FieldList, SelectField, FormField
+from wtforms import FieldList, FormField
 from trackyr import db
 from trackyr.models import Task, Source, NotificationAgent
 from trackyr.tasks.forms import TaskForm, AddSourceForm, AddNotificationAgentForm
@@ -7,8 +7,6 @@ from trackyr.tasks.forms import TaskForm, AddSourceForm, AddNotificationAgentFor
 from lib.utils import cron
 import lib.core.task as task
 from lib.core.state import State
-
-import lib.utils.logger as log
 
 tasks = Blueprint('tasks', __name__)
 
@@ -22,7 +20,7 @@ def create_tasks():
 
     sourceform.source_select.choices=get_source_choices()
     notificationagentform.notification_agent_select.choices=get_notification_agents_choices()
-    
+
     if form.colour_flag.data == "":
         cf="#ff8c00"
     else:
