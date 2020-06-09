@@ -54,8 +54,13 @@ def create_tasks():
         State.refresh_tasks()
         cron.add(int(form.frequency.data), "minutes")
 
+        if form.prime_count.data:
+            prime = form.prime_count.data
+        else:
+            prime = 0
+
         prime_task = task.Task(source_ids=source_list, notif_agent_ids=notification_agent_list, include=[form.must_contain.data], exclude=[form.exclude.data], colour_flag=form.colour_flag.data)
-        task.prime(prime_task, notify=True, recent_ads=int(form.prime_count.data))
+        task.prime(prime_task, notify=True, recent_ads=int(prime))
 
         flash('Your task has been created!', 'top_flash_success')
 
