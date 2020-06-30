@@ -9,8 +9,6 @@ from pathlib import Path
 import re
 from modules.sources.kijiji.ad import KijijiAd
 
-import lib.utils.logger as log
-
 
 class KijijiScraper():
     current_directory = os.path.dirname(os.path.realpath(__file__))
