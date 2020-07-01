@@ -380,7 +380,8 @@ def scrape(
 
     else:
         log.info_print("Ignoring old ads...")
-    new_ads, ad_title = module.scrape_for_ads(old_ads, exclude, include, **source.module_properties)
+
+    new_ads, ad_title = module.scrape_for_ads(old_ads, exclude=exclude, **source.module_properties)
 
     info_string = f"Found {len(new_ads)} new ads" \
         if len(new_ads) != 1 else "Found 1 new ad"

@@ -27,7 +27,7 @@ class Logger():
         self.handlers["CRON_HANDLER"] = self.CRON_HANDLER
 
         self.rootLogger.addHandler(self.fileHandler)
-        #self.rootLogger.addHandler(self.CRON_HANDLER)
+#        self.rootLogger.addHandler(self.CRON_HANDLER)
 
         self.rootLogger.setLevel(logging.INFO)
 

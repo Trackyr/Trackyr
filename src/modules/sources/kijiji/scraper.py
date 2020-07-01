@@ -9,14 +9,12 @@ from pathlib import Path
 import re
 from modules.sources.kijiji.ad import KijijiAd
 
-
 class KijijiScraper():
     current_directory = os.path.dirname(os.path.realpath(__file__))
 
     new_ads = []
     old_ad_ids = []
     exclude = []
-    include = []
 
     third_party_ads = []
 
@@ -32,12 +30,10 @@ class KijijiScraper():
         pass
 
     # Pulls page data from a given kijiji url and finds all ads on each page
-    def scrape_for_ads(self, old_ad_ids, exclude=[], include=[], **kwargs):
+    def scrape_for_ads(self, old_ad_ids, exclude=[], **kwargs):
         self.new_ads = {}
         self.old_ad_ids = old_ad_ids
-
-        self.exclude = [x for x in exclude if x]
-        self.include = [x for x in include if x]
+        self.exclude = []
 
         url = kwargs["url"]
         title = None
@@ -49,6 +45,7 @@ class KijijiScraper():
             # If the title doesnt exist pull it from the html data
             if title is None:
                 title = self.get_title(soup)
+
             # Find ads on the page
             self.find_ads(soup)
 
@@ -74,10 +71,6 @@ class KijijiScraper():
             kijiji_ad = KijijiAd(ad)
 
             exclude_flag = 0
-            if self.include:
-                include_flag = 0
-            else:
-                include_flag = 1
 
             # If any of the ad words match the exclude list then skip
             for x in self.exclude:
@@ -87,21 +80,11 @@ class KijijiScraper():
                     exclude_flag = -1
                     break
 
-            for x in self.include:
-                result = re.search(x, str(kijiji_ad.info).lower())
-                if result is not None:
-                    include_flag = 1
-                    break
-
-
-
-            if exclude_flag is not -1 and include_flag == 1:
+            if exclude_flag is not -1:
                 if (kijiji_ad.id not in self.old_ad_ids and
                         kijiji_ad.id not in self.third_party_ads):
                     self.new_ads[kijiji_ad.id] = kijiji_ad.info
                     self.old_ad_ids.append(kijiji_ad.id)
-
-
 
     def get_title(self, soup):
         title_location = soup.find('div', {'class': 'message'})
