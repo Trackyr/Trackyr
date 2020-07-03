@@ -12,7 +12,6 @@
                 <th scope="col">Name</th>
                 <th scope="col">Username</th>
                 <th scope="col">Icon</th>
-                <th scope="col">Channel</th>
                 <th scope="col"></th>
                 <th scope="col"></th>
             </tr>
@@ -24,7 +23,6 @@
                         <td>{{ agent.name }}</td>
                         <td>{{ agent.username }}</td>
                         <td>{{ agent.icon }}</td>
-                        <td>{{ agent.channel }}</td>
                         <td><a class="btn btn-secondary btm-sm mt-1 mb-1" href="{{ url_for('notification_agents.edit_notification_agent', notification_agent_id=agent.id) }}">Edit</a></td>
                         <td><a class="btn btn-danger btm-sm mt-1 mb-1" href="{{ url_for('notification_agents.delete_notification_agent', notification_agent_id=agent.id) }}">Delete</a></td>
                     </tr>  

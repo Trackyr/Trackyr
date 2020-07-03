@@ -1,5 +1,5 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, SubmitField, SelectField
+from wtforms import StringField, SubmitField, SelectField, FileField
 from wtforms.validators import DataRequired
 
 class NotificationAgentForm(FlaskForm):
@@ -9,6 +9,5 @@ class NotificationAgentForm(FlaskForm):
     webhook_url = StringField('Webhook URL')
     username = StringField('Username')
     icon = StringField('Icon')
-    channel = StringField('Channel')
     submit = SubmitField('Save')
     test = SubmitField('Test')

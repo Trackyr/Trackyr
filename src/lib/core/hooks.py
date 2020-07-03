@@ -1,3 +1,4 @@
+import os
 from copy import deepcopy
 
 import sqlalchemy;
@@ -102,7 +103,7 @@ def to_new_core_source(source_model):
         module = "kijiji"
 
     module_properties = {
-        "url": s.website
+        "url": s.website,
     }
 
     return source.Source(
@@ -162,7 +163,8 @@ def to_new_core_notif_agent(notif_agent_model):
 
     module_properties = {
         "webhook": n.webhook_url,
-        "botname": n.username
+        "botname": n.username,
+        "avatar": n.icon
     }
 
     return notif_agent.NotifAgent(
@@ -185,8 +187,7 @@ def to_new_notif_agent_model(core_notif_agent):
     m.module = module
     m.webhook_url = c.module_properties["webhook"]
     m.username = c.module_properties["botname"]
-    m.icon = ""
-    m.channel = ""
+    m.icon = c.module_properties["icon"]
 
     return m
 
@@ -201,6 +202,7 @@ def to_existing_notif_agent_model(core_notif_agent, notif_agent_model):
     m.id = c.id
     m.name = c.name
     m.module = module
+    m.icon = c.module_properties["icon"]
     m.webhook_url = c.module_properties["webhook"]
     m.username = c.module_properties["botname"]
 
