@@ -1,6 +1,5 @@
 #!/bin/usr/env python3
 import discord
-import lib.utils.logger as log
 
 class DiscordClient():
     def get_properties(self):
@@ -60,7 +59,7 @@ class DiscordClient():
 
         title = self.__create_discord_title(discord_title, len(ad_dict))
 
-        result = self.webhook.send(content=f"**{title}**", username=self.bot_name, avatar_url=self.avatar)
+        self.webhook.send(content=f"**{title}**", username=self.bot_name, avatar_url=self.avatar)
 
         for ad_id in ad_dict:
             embed = self.__create_discord_embed(ad_dict, ad_id, colour_flag)

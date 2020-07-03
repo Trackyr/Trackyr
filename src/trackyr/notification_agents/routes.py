@@ -1,12 +1,9 @@
-import os
 
 from flask import (Blueprint, abort, flash, redirect, render_template, request, url_for)
 from trackyr import db
 from trackyr.models import NotificationAgent
 from trackyr.notification_agents.forms import NotificationAgentForm
 
-import json
-import requests
 
 import lib.core.notif_agent as notifAgent
 from lib.core.state import State

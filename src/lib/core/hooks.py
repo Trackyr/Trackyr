@@ -1,7 +1,6 @@
-import os
+
 from copy import deepcopy
 
-import sqlalchemy;
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
