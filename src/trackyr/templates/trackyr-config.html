@@ -2,7 +2,7 @@
 {% block content %}
     <h1>{{ title }}</h1>
 
-    {% if not update_available %}
+    {% if update_available %}
         <div class="content-section">
             <h3>Update Available</h3>
             <a class="btn btn-success btm-sm mt-1 mb-1" href="{{ url_for('trackyr_config.update') }}">Update</a>

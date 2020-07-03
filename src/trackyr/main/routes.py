@@ -1,5 +1,6 @@
 from flask import render_template, request, Blueprint
 from trackyr.models import NotificationAgent, Source, Task
+import lib.core.version as versionCheck
 
 main = Blueprint('main', __name__)
 
@@ -28,4 +29,5 @@ def sources():
 
 @main.route("/trackyr_config", methods=['GET', 'POST'])
 def trackyr_config():
-    return render_template('trackyr-config.html', title='Config')
+    vcheck = versionCheck.is_latest_version()
+    return render_template('trackyr-config.html', title='Config', update_available=vcheck)
