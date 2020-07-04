@@ -9,6 +9,5 @@ class NotificationAgentForm(FlaskForm):
     webhook_url = StringField('Webhook URL')
     username = StringField('Username')
     icon = StringField('Icon')
-    channel = StringField('Channel')
     submit = SubmitField('Save')
     test = SubmitField('Test')

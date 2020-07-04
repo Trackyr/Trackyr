@@ -1,10 +1,9 @@
 #!/bin/usr/env python3
 import discord
-import lib.utils.logger as log
 
 class DiscordClient():
     def get_properties(self):
-        return ["webhook", "botname"]
+        return ["webhook", "botname", "avatar"]
 
     def is_property_valid(self, key, value):
         if key == "webhook":
@@ -31,14 +30,15 @@ class DiscordClient():
 
         webhook_url = kwargs["webhook"]
         self.bot_name = kwargs["botname"]
+        self.avatar = kwargs["avatar"]
 
         if not webhook_url in webhook_cache:
             webhook_cache[webhook_url] = discord.Webhook.from_url(webhook_url, adapter=discord.RequestsWebhookAdapter())
 
         self.webhook = webhook_cache[webhook_url]
 
-        self.webhook.send(content=f"**{title}**", username=self.bot_name)
-        self.webhook.send(content=message, username=self.bot_name)
+        self.webhook.send(content=f"**{title}**", username=self.bot_name, avatar_url=self.avatar)
+        self.webhook.send(content=message, username=self.bot_name, avatar_url=self.avatar)
 
     # Sends a Discord message with links and info of new ads
     def send_ads(self, ad_dict, discord_title, colour_flag, **kwargs):
@@ -49,6 +49,8 @@ class DiscordClient():
 
         webhook_url = kwargs["webhook"]
         self.bot_name = kwargs["botname"]
+        self.avatar = kwargs["avatar"]
+
 
         if not webhook_url in webhook_cache:
             webhook_cache[webhook_url] = discord.Webhook.from_url(webhook_url, adapter=discord.RequestsWebhookAdapter())
@@ -57,12 +59,12 @@ class DiscordClient():
 
         title = self.__create_discord_title(discord_title, len(ad_dict))
 
-        result = self.webhook.send(content=f"**{title}**", username=self.bot_name)
+        self.webhook.send(content=f"**{title}**", username=self.bot_name, avatar_url=self.avatar)
 
         for ad_id in ad_dict:
             embed = self.__create_discord_embed(ad_dict, ad_id, colour_flag)
 
-            self.webhook.send(embed=embed, username=self.bot_name)
+            self.webhook.send(embed=embed, username=self.bot_name, avatar_url=self.avatar)
 
     def __create_discord_title(self, discord_title, ad_count):
         if ad_count > 1:

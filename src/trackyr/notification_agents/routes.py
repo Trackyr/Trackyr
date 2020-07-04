@@ -1,13 +1,14 @@
+
 from flask import (Blueprint, abort, flash, redirect, render_template, request, url_for)
 from trackyr import db
 from trackyr.models import NotificationAgent
 from trackyr.notification_agents.forms import NotificationAgentForm
 
-import json
-import requests
 
 import lib.core.notif_agent as notifAgent
 from lib.core.state import State
+
+
 
 notification_agents = Blueprint('notification_agents', __name__)
 
@@ -26,9 +27,10 @@ def create_notification_agents():
             else:
                 username="Trackyr"
 
+
             Dict = {1: 'discord'}
 
-            test_notify = notifAgent.NotifAgent(module=Dict.get(form.module.data), module_properties={'webhook':webhook_url,'botname':username})
+            test_notify = notifAgent.NotifAgent(module=Dict.get(form.module.data), module_properties={'webhook':webhook_url,'botname':username, 'avatar':form.icon.data})
             notifAgent.test_notif_agent(test_notify)
             
             # Notification message on webui
@@ -38,8 +40,7 @@ def create_notification_agents():
                                                     name=form.name.data,
                                                     webhook_url=form.webhook_url.data,
                                                     username=form.username.data,
-                                                    icon=form.icon.data,
-                                                    channel=form.channel.data)
+                                                    icon=form.icon.data)
             db.session.add(notification_agent)
             db.session.commit()
 
@@ -62,7 +63,6 @@ def edit_notification_agent(notification_agent_id):
         notification_agents.webhook_url = form.webhook_url.data
         notification_agents.username = form.username.data
         notification_agents.icon = form.icon.data
-        notification_agents.channel = form.channel.data
         db.session.commit()
 
         State.refresh_notif_agents()
@@ -75,8 +75,7 @@ def edit_notification_agent(notification_agent_id):
         form.webhook_url.data = notification_agents.webhook_url
         form.username.data = notification_agents.username
         form.icon.data = notification_agents.icon
-        form.channel.data = notification_agents.channel
-    return render_template('create-notification-agent.html', title='Update Notification Agent', 
+        return render_template('create-notification-agent.html', title='Update Notification Agent',
                             form=form, legend='Update Notification Agent')
 
 @notification_agents.route("/notification_agents/<int:notification_agent_id>/delete", methods=['GET', 'POST'])
