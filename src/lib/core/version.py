@@ -1,7 +1,7 @@
 import subprocess
 
 def is_latest_version():
-    return get_local_version() == get_remote_version()
+    return get_local_version() != get_remote_version()
 
 def get_local_version(format=True):
     local = subprocess.check_output(
