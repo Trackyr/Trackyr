@@ -125,6 +125,11 @@ def delete_source(source_id):
         log.info_print(f"[AFTER] task[{task.id}]: {task.source} --- {len(task.source)}")
         log.info_print("---")
                         
+    #########################################################################################
+    # This has been commented out just to save myself some time when debugging. So I don't 
+    # need to create a new source each time I trial. When the problem noted below is solved,
+    # then this can be uncommented.
+    #########################################################################################
     # db.session.delete(source)
     log.info_print("-------------------")
 
