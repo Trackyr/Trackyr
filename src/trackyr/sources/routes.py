@@ -1,11 +1,13 @@
 from flask import (Blueprint, abort, flash, redirect, render_template, request, url_for)
 
 from trackyr import db
-from trackyr.models import Source
+from trackyr.models import Source, Task
 from trackyr.sources.forms import SourceForm
 
 import lib.core.source as prime
 from lib.core.state import State
+
+import lib.utils.logger as log
 
 sources = Blueprint('sources', __name__)
 
@@ -48,7 +50,7 @@ def create_source():
 
             flash('Your source has been saved!', 'top_flash_success')
             return redirect(url_for('main.sources'))
-    return render_template('create-source.html', title='Create Source', 
+    return render_template('create-source.html', title='Create Source',
                             form=form, legend='Create Source')
 
 @sources.route("/sources/<int:source_id>/edit", methods=['GET', 'POST'])
@@ -96,16 +98,65 @@ def edit_source(source_id):
         form.location.data = source.location
         form.range.data = source.range
         # form.subreddit.data = source.subreddit
-    return render_template('create-source.html', title='Update Source', 
+    return render_template('create-source.html', title='Update Source',
                             form=form, legend='Update Source')
 
 @sources.route("/sources/<int:source_id>/delete", methods=['GET', 'POST'])
 def delete_source(source_id):
+    State.load()
+
     source = Source.query.get_or_404(source_id)
-    db.session.delete(source)
+    tasks = Task.query.all()
+
+    for task in tasks:
+        log.info_print(f"[BEFORE] task[{task.id}]: {task.source} --- {len(task.source)}")
+        if source_id in task.source:
+            log.info_print(f"[DELETING] task[{task.id}]: {source_id}")
+            task.source.remove(source_id)
+            # temp_task = task.source
+            # temp_task.remove(source_id)
+            # setattr(task, 'source', temp_task)
+            # log.info_print(f"[CHECK] task.source = {task.source}")
+
+            # if this causes a task to  go down to 0 sources, then it should be deleted.
+            if len(task.source) == 0:
+                db.session.delete(task)
+            
+        log.info_print(f"[AFTER] task[{task.id}]: {task.source} --- {len(task.source)}")
+        log.info_print("---")
+                        
+    # db.session.delete(source)
+    log.info_print("-------------------")
+
+    for task in tasks:
+        log.info_print(f"[AFTER 2] task[{task.id}]: {task.source} --- {len(task.source)}")
+
+    log.info_print(f"[CHECK] {tasks}")
+
+    #########################################################################################
+    # Prior to this point, `tasks` is displaying the correct information.
+    # Once the `db.session.commit()` is called, then it reverts `tasks` back to it's previous
+    # state.
+    # Why???
+    #########################################################################################
+    
     db.session.commit()
 
+    log.info_print("-------------------")
+
+    for task in tasks:
+        log.info_print(f"[AFTER 3] task[{task.id}]: {task.source} --- {len(task.source)}")
+
     State.refresh_sources()
+    # State.refresh_tasks()
+    # State.load()
+
+    tasks = Task.query.all()
+
+    log.info_print("-------------------")
+
+    for task in tasks:
+        log.info_print(f"[AFTER 4] task[{task.id}]: {task.source} --- {len(task.source)}")
 
     flash('Your source has been deleted.', 'top_flash_success')
     return redirect(url_for('main.sources'))
