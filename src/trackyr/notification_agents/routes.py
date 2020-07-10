@@ -1,9 +1,8 @@
 
-from flask import (Blueprint, abort, flash, redirect, render_template, request, url_for)
+from flask import (Blueprint, abort, flash, redirect, render_template, request, url_for, jsonify)
 from trackyr import db
 from trackyr.models import NotificationAgent
 from trackyr.notification_agents.forms import NotificationAgentForm
-
 
 import lib.core.notif_agent as notifAgent
 from lib.core.state import State
@@ -11,6 +10,24 @@ from lib.core.state import State
 
 
 notification_agents = Blueprint('notification_agents', __name__)
+
+@notification_agents.route("/notification_agents/test", methods=['POST'])
+def test_notification_agent():
+    json = request.json
+    webhook_url = json['webhook']
+    if json['username']:
+        username = json['username']
+    else:
+        username = "Trackyr"
+    Dict = {1: 'discord'}
+
+    test_notify = notifAgent.NotifAgent(module=Dict.get(int(json['module'])),
+                                        module_properties={'webhook': webhook_url, 'botname': username,
+                                                           'avatar': json['avatar']})
+
+    notifAgent.test_notif_agent(test_notify)
+    return "Success"
+
 
 @notification_agents.route("/notification_agents/create", methods=['GET', 'POST'])
 def create_notification_agents():
