@@ -1,5 +1,5 @@
 
-from flask import (Blueprint, abort, flash, redirect, render_template, request, url_for, jsonify)
+from flask import (Blueprint, abort, flash, redirect, render_template, request, url_for)
 from trackyr import db
 from trackyr.models import NotificationAgent
 from trackyr.notification_agents.forms import NotificationAgentForm
