@@ -84,7 +84,7 @@ def test_notification_agent():
     form = NotificationAgentForm()
     json = request.json
     webhook_url = json['webhook']
-    if not json['username']:
+    if json['username']:
         username = json['username']
     else:
         username = "Trackyr"
