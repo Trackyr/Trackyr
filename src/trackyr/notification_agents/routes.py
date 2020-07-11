@@ -1,4 +1,4 @@
-from flask import (Blueprint, abort, flash, redirect, render_template, request, url_for, request)
+from flask import (Blueprint, flash, redirect, render_template, request, url_for)
 from trackyr import db
 from trackyr.models import NotificationAgent
 from trackyr.notification_agents.forms import NotificationAgentForm
@@ -81,7 +81,6 @@ def delete_notification_agent(notification_agent_id):
 
 @notification_agents.route("/notification_agents/test", methods=['POST'])
 def test_notification_agent():
-    form = NotificationAgentForm()
     json = request.json
     webhook_url = json['webhook']
     if not json['username']:
