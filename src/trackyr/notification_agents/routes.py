@@ -3,8 +3,6 @@ from trackyr import db
 from trackyr.models import NotificationAgent
 from trackyr.notification_agents.forms import NotificationAgentForm
 
-import lib.utils.logger as log
-
 import lib.core.notif_agent as notifAgent
 from lib.core.state import State
 
