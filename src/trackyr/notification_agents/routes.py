@@ -47,7 +47,7 @@ def edit_notification_agent(notification_agent_id):
 
         flash('Your notification agent has been updated!', 'top_flash_success')
         return redirect(url_for('main.notification_agents', notification_agent_id=notification_agents.id))
-    elif request.method == 'GET':
+    elif request.method == 'POST':
         form.module.data = notification_agents.module
         form.name.data = notification_agents.name
         form.webhook_url.data = notification_agents.webhook_url
@@ -84,7 +84,7 @@ def test_notification_agent():
     form = NotificationAgentForm()
     json = request.json
     webhook_url = json['webhook']
-    if json['username']:
+    if not json['username']:
         username = json['username']
     else:
         username = "Trackyr"
