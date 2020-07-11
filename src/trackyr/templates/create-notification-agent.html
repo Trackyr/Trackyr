@@ -86,4 +86,36 @@
             </div>
         </form>
     </div>
+    <script>
+        jQuery(document).ready(function($){
+             var csrf_token = $("#csrf_token").val()
+
+
+
+                $("#test").click(function(evt){
+                    evt.preventDefault();
+                     data =  {
+                       username: $("#username").val(),
+                       webhook: $("#webhook_url").val(),
+                       avatar: $("#icon").val(),
+                       module: $("#notificationAgentSelection").val()
+                     }
+                    var xhr = new XMLHttpRequest();
+                    xhr.open("POST", "/notification_agents/test", true);
+                    xhr.setRequestHeader("X-CSRFToken", csrf_token);
+                    xhr.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
+                    // send the collected data as JSON
+                    xhr.send(JSON.stringify(data));
+                    $("#notificationMessage").html("<div class=\"alert alert-info alert-dismissible fade show\" role=\"alert\">\n" +
+                        "                                <span>Test sent!</span>\n" +
+                        "                                <button type=\"button\" class=\"close\" data-dismiss=\"alert\" aria-label=\"Close\">\n" +
+                        "                                    <span aria-hidden=\"true\">×</span>\n" +
+                        "                                </button>\n" +
+                        "                            </div>")
+                    $("#notificationMessage").show();
+                });
+
+
+        });
+    </script>
 {% endblock content %}

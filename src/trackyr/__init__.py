@@ -4,15 +4,17 @@ from trackyr.config import Config
 from flask_migrate import Migrate
 from flask_bootstrap import Bootstrap
 from flask_colorpicker import colorpicker
+from flask_wtf.csrf import CSRFProtect
 
 db = SQLAlchemy()
 
 def create_app(config_class=Config):
     app = Flask(__name__)
+    CSRFProtect(app)
     app.config.from_object(Config)
 
     db.init_app(app)
-    migrate = Migrate(app,db)
+    Migrate(app,db)
     Bootstrap(app)
     colorpicker(app)
 
@@ -29,6 +31,4 @@ def create_app(config_class=Config):
     app.register_blueprint(tasks)
     app.register_blueprint(trackyr_config)
     app.register_blueprint(errors)
-
     return app
-    
