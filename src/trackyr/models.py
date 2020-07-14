@@ -12,7 +12,7 @@ class NotificationAgent(db.Model):
     name = db.Column(db.String(100), nullable=False)
     webhook_url = db.Column(db.String(200), nullable=False)
     username = db.Column(db.String(100), nullable=False)
-    icon = db.Column(db.Text, nullable=False)
+    icon = db.Column(db.Text, nullable=True)
 
     def __repr__(self):
         return f"Notification Agent('{self.name}')"

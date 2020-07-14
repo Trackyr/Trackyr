@@ -4,9 +4,8 @@
 
 import os
 import argparse
-import subprocess
-import re
 import lib.utils.logger as log
+from crontab import CronTab
 
 pyfile = "main.py"
 path = os.path.dirname(os.path.abspath(__file__ + "/../..")) + "/" + pyfile
@@ -19,26 +18,33 @@ def get_cron_line(time, unit):
     return f'{cron_time} {path} -c {time} {unit}'
 
 def exists(time, unit):
-    cron_string = get_cron_line(time, unit)
-    out = str(subprocess.check_output(['crontab', '-l']))
-    cron_string = cron_string.replace("*",  "[*]")
-    return re.search(cron_string, out)
+    cron = CronTab(user=True)
+    cron_time = convert(time, unit)
+    iter = cron.find_time(cron_time)
+    for x in iter:
+        return True
 
 def clear():
+    cron = CronTab(user=True)
     log.debug("Clearing crontab...")
-    os.system(f'crontab -l | grep -v "{path}"  | crontab -')
+    cron.remove_all()
+    cron.write()
 
 def add(time, unit):
+    cron = CronTab(user=True)
     if exists(time, unit):
         log.debug(f"Skipping add cron. Cron entry: '{time}, {unit}' already exists")
         return
 
     cron_string = get_cron_line(time, unit)
-    os.system(f'(crontab -l; echo "{cron_string}") | crontab -')
-
+    cron_time = convert(time, unit)
+    job = cron.new(command=path)
+    job.setall(cron_time)
+    cron.write()
     log.debug(f"Added to cron: {cron_string}")
 
 def delete(time, unit):
+    cron = CronTab(user=True)
     if not exists(time, unit):
         print (f"Cannot delete. Cron entry: '{time}, {unit}' doesnt exist")
         return
@@ -46,7 +52,10 @@ def delete(time, unit):
     cron_time = convert(time, unit)
     cron_string = get_cron_line(time, unit)
     cron_string = cron_string.replace("*",  "[*]")
-    os.system(f'crontab -l | grep -v "{cron_string}"  | crontab -')
+    iter = cron.find_time(cron_time)
+    for job in iter:
+        cron.remove(job)
+    cron.write()
     log.debug(f"Deleted from cron: {cron_string}")
 
 def convert(time, unit):
