@@ -109,59 +109,14 @@ def delete_source(source_id):
     tasks = Task.query.all()
 
     for task in tasks:
-        log.info_print(f"[BEFORE] task[{task.id}]: {task.source} --- {len(task.source)}")
-        if source_id in task.source:
-            log.info_print(f"[DELETING] task[{task.id}]: {source_id}")
-            task.source.remove(source_id)
-            # temp_task = task.source
-            # temp_task.remove(source_id)
-            # setattr(task, 'source', temp_task)
-            # log.info_print(f"[CHECK] task.source = {task.source}")
+        task.source = [s for s in task.source if s != source_id]
 
-            # if this causes a task to  go down to 0 sources, then it should be deleted.
-            if len(task.source) == 0:
-                db.session.delete(task)
+        # if this causes a task to  go down to 0 sources, then it should be deleted.
+        if len(task.source) == 0:
+            db.session.delete(task)
             
-        log.info_print(f"[AFTER] task[{task.id}]: {task.source} --- {len(task.source)}")
-        log.info_print("---")
-                        
-    #########################################################################################
-    # This has been commented out just to save myself some time when debugging. So I don't 
-    # need to create a new source each time I trial. When the problem noted below is solved,
-    # then this can be uncommented.
-    #########################################################################################
-    # db.session.delete(source)
-    log.info_print("-------------------")
-
-    for task in tasks:
-        log.info_print(f"[AFTER 2] task[{task.id}]: {task.source} --- {len(task.source)}")
-
-    log.info_print(f"[CHECK] {tasks}")
-
-    #########################################################################################
-    # Prior to this point, `tasks` is displaying the correct information.
-    # Once the `db.session.commit()` is called, then it reverts `tasks` back to it's previous
-    # state.
-    # Why???
-    #########################################################################################
-    
+    db.session.delete(source)
     db.session.commit()
-
-    log.info_print("-------------------")
-
-    for task in tasks:
-        log.info_print(f"[AFTER 3] task[{task.id}]: {task.source} --- {len(task.source)}")
-
-    State.refresh_sources()
-    # State.refresh_tasks()
-    # State.load()
-
-    tasks = Task.query.all()
-
-    log.info_print("-------------------")
-
-    for task in tasks:
-        log.info_print(f"[AFTER 4] task[{task.id}]: {task.source} --- {len(task.source)}")
 
     flash('Your source has been deleted.', 'top_flash_success')
     return redirect(url_for('main.sources'))
