@@ -1,6 +1,5 @@
 from flask import render_template, request, Blueprint
 from trackyr.models import NotificationAgent, Source, Task
-import lib.core.version as versionCheck
 
 main = Blueprint('main', __name__)
 
@@ -25,9 +24,9 @@ def notification_agents():
 @main.route("/sources")
 def sources():
     sources = Source.query.all()
-    return render_template('sources.html', title='Sources', sources=sources)
+    tasks = Task.query.all()
+    return render_template('sources.html', title='Sources', sources=sources, tasks=tasks)
 
 @main.route("/trackyr_config", methods=['GET', 'POST'])
 def trackyr_config():
-    vcheck = versionCheck.is_latest_version()
-    return render_template('trackyr-config.html', title='Config', update_available=vcheck)
+    return render_template('trackyr-config.html', title='Config')
