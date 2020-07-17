@@ -19,7 +19,8 @@ def tasks():
 @main.route("/notification_agents")
 def notification_agents():
     notification_agents = NotificationAgent.query.all()
-    return render_template('notification-agents.html', title='Notification Agents', notification_agents=notification_agents)
+    tasks = Task.query.all()
+    return render_template('notification-agents.html', title='Notification Agents', notification_agents=notification_agents, tasks=tasks)
 
 @main.route("/sources")
 def sources():
