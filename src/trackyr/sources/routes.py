@@ -7,8 +7,6 @@ from trackyr.sources.forms import SourceForm
 import lib.core.source as prime
 from lib.core.state import State
 
-import lib.utils.logger as log
-
 sources = Blueprint('sources', __name__)
 
 @sources.route("/sources/create", methods=['GET', 'POST'])
@@ -120,3 +118,4 @@ def delete_source(source_id):
 
     flash('Your source has been deleted.', 'top_flash_success')
     return redirect(url_for('main.sources'))
+    
