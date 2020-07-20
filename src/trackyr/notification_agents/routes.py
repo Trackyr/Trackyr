@@ -1,6 +1,6 @@
 from flask import (Blueprint, flash, redirect, render_template, request, url_for)
 from trackyr import db
-from trackyr.models import NotificationAgent
+from trackyr.models import NotificationAgent, Task
 from trackyr.notification_agents.forms import NotificationAgentForm
 
 import lib.core.notif_agent as notifAgent

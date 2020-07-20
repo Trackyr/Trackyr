@@ -1,5 +1,6 @@
 from flask import render_template, request, Blueprint
 from trackyr.models import NotificationAgent, Source, Task
+from trackyr.main.forms import BlankForm
 import lib.core.version as versionCheck
 
 main = Blueprint('main', __name__)
@@ -19,15 +20,17 @@ def tasks():
 
 @main.route("/notification_agents")
 def notification_agents():
+    form = BlankForm()
     notification_agents = NotificationAgent.query.all()
     tasks = Task.query.all()
-    return render_template('notification-agents.html', title='Notification Agents', notification_agents=notification_agents, tasks=tasks)
+    return render_template('notification-agents.html', title='Notification Agents', notification_agents=notification_agents, tasks=tasks, form=form)
 
 @main.route("/sources")
 def sources():
+    form = BlankForm()
     sources = Source.query.all()
     tasks = Task.query.all()
-    return render_template('sources.html', title='Sources', sources=sources, tasks=tasks)
+    return render_template('sources.html', title='Sources', sources=sources, tasks=tasks, form=form)
 
 @main.route("/trackyr_config", methods=['GET', 'POST'])
 def trackyr_config():
