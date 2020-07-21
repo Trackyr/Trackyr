@@ -1,6 +1,6 @@
 from flask import (Blueprint, flash, redirect, render_template, request, url_for)
 from trackyr import db
-from trackyr.models import NotificationAgent
+from trackyr.models import NotificationAgent, Task
 from trackyr.notification_agents.forms import NotificationAgentForm
 
 import lib.core.notif_agent as notifAgent
@@ -70,7 +70,18 @@ def edit_notification_agent(notification_agent_id):
 
 @notification_agents.route("/notification_agents/<int:notification_agent_id>/delete", methods=['GET', 'POST'])
 def delete_notification_agent(notification_agent_id):
+    State.load()
+
     notification_agent = NotificationAgent.query.get_or_404(notification_agent_id)
+    tasks = Task.query.all()
+
+    for task in tasks:
+        task.notification_agent = [s for s in task.notification_agent if s != notification_agent_id]
+
+        # if this causes a task to  go down to 0 notification agents, then it should be deleted.
+        if len(task.notification_agent) == 0:
+            db.session.delete(task)
+            
     db.session.delete(notification_agent)
     db.session.commit()
 

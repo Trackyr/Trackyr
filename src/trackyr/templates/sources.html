@@ -13,8 +13,7 @@
                 <th scope="col">Website</th>
                 <th scope="col">Location</th>
                 <th scope="col">Range</th>
-                <th scope="col"></th>
-                <th scope="col"></th>
+                <th scope="col">Actions</th>
             </tr>
         </thead>
         <tbody>
@@ -25,8 +24,7 @@
                         <td>{{ source.website }}</td>
                         <td>{{ source.location }}</td>
                         <td>{{ source.range }} km</td>
-                        <td><a class="btn btn-secondary btm-sm mt-1 mb-1" href="{{ url_for('sources.edit_source', source_id=source.id) }}"><i class="fa fa-pencil" style="font-size:16px"></i></a></td>
-                        <td><button class="btn btn-danger btm-sm mt-1 mb-1"  data-toggle="modal" data-target="#modalDelete{{ source.id }}"><i class="fa fa-trash" style="font-size:16px"></i></button></td>
+                        <td><a class="btn btn-secondary btm-sm mt-1 mb-1" href="{{ url_for('sources.edit_source', source_id=source.id) }}"><i class="fa fa-pencil" style="font-size:16px"></i></a>  <button class="btn btn-danger btm-sm mt-1 mb-1"  data-toggle="modal" data-target="#modalDelete{{ source.id }}"><i class="fa fa-trash" style="font-size:16px"></i></button></td>
                     </tr>
                 {% endif %}
             {% endfor %}
@@ -98,6 +96,7 @@
                 <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-dismiss="modal">No Thanks</button>
                 <form action="{{ url_for('sources.delete_source', source_id=source.id) }}" method="POST">
+                    {{ form.hidden_tag() }}
                     <button type="submit" class="btn btn-danger" name="submit_button">Yes! Delete it!</button> 
                 </form>
                 </div>
