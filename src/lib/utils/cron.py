@@ -17,6 +17,10 @@ def get_cron_line(time, unit):
     cron_time = convert(time, unit)
     return f'{cron_time} {path} -c {time} {unit}'
 
+def get_cron_command(time, unit):
+    cron_command = convert(time, unit)
+    return f'{path} -c {time} {unit}'
+
 def exists(time, unit):
     cron = CronTab(user=True)
     cron_time = convert(time, unit)
@@ -38,7 +42,7 @@ def add(time, unit):
 
     cron_string = get_cron_line(time, unit)
     cron_time = convert(time, unit)
-    job = cron.new(command=path)
+    job = cron.new(command=get_cron_command(time, unit))
     job.setall(cron_time)
     cron.write()
     log.debug(f"Added to cron: {cron_string}")
