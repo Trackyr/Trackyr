@@ -5,32 +5,31 @@
         <a class="btn btn-primary" href="{{ url_for('sources.create_source') }}">Create Sources</a>
     </p>
 
-    <h3>Kijiji</h3>
-    <table class="table table-hover">
-        <thead>
-            <tr>
-                <th scope="col">Name</th>
-                <th scope="col">Website</th>
-                <th scope="col">Location</th>
-                <th scope="col">Range</th>
-                <th scope="col">Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for source in sources %}
-                {% if source.module == 1 %} 
+    {% for m in modules if m.category == "source" %}
+        <h3>{{ m.name }}</h3>
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th scope="col">Name</th>
+                    <th scope="col">Website</th>
+                    <th scope="col">Location</th>
+                    <th scope="col">Range</th>
+                    <th scope="col">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for s in sources if s.module == m.id%}
                     <tr>
-                        <td>{{ source.name }}</td>
-                        <td>{{ source.website }}</td>
-                        <td>{{ source.location }}</td>
-                        <td>{{ source.range }} km</td>
-                        <td><a class="btn btn-secondary btm-sm mt-1 mb-1" href="{{ url_for('sources.edit_source', source_id=source.id) }}"><i class="fa fa-pencil" style="font-size:16px"></i></a>  <button class="btn btn-danger btm-sm mt-1 mb-1"  data-toggle="modal" data-target="#modalDelete{{ source.id }}"><i class="fa fa-trash" style="font-size:16px"></i></button></td>
+                        <td>{{ s.name }}</td>
+                        <td>{{ s.website }}</td>
+                        <td>{{ s.location }}</td>
+                        <td>{{ s.range }} km</td>
+                        <td><a class="btn btn-secondary btm-sm mt-1 mb-1" href="{{ url_for('sources.edit_source', source_id=s.id) }}"><i class="fa fa-pencil" style="font-size:16px"></i></a>  <button class="btn btn-danger btm-sm mt-1 mb-1"  data-toggle="modal" data-target="#modalDelete{{ s.id }}"><i class="fa fa-trash" style="font-size:16px"></i></button></td>
                     </tr>
-                {% endif %}
-            {% endfor %}
-        </tbody>
-    </table>
-
+                {% endfor %}
+            </tbody>
+        </table>
+    {% endfor %}
     <p>
         <a class="btn btn-primary" href="{{ url_for('sources.create_source') }}">Create Sources</a>
     </p>
