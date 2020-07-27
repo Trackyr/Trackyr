@@ -43,3 +43,12 @@ class Task(db.Model):
 
     def __repr__(self):
         return f"Task('ID: {self.id}','{self.name}','{self.frequency} Minutes','Source: {self.source}','Notification Agent: {self.notification_agent}','Must Contain: {self.must_contain}','Exclude: {self.exclude}')"
+
+class Modules(db.Model):
+    __tablename__ = 'modules'
+    id = db.Column(db.Integer, primary_key=True)
+    category = db.Column(db.String(100), nullable=False)
+    name = db.Column(db.String(100), nullable=False)
+
+    def __repr__(self):
+        return f"Module('ID: {self.id}','Category: {self.category}','Name: {self.name}'"
