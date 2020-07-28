@@ -1,5 +1,5 @@
 from flask import render_template, request, Blueprint
-from trackyr.models import NotificationAgent, Source, Task
+from trackyr.models import NotificationAgent, Source, Task, Modules
 from trackyr.main.forms import BlankForm
 import lib.core.version as versionCheck
 
@@ -30,7 +30,8 @@ def sources():
     form = BlankForm()
     sources = Source.query.all()
     tasks = Task.query.all()
-    return render_template('sources.html', title='Sources', sources=sources, tasks=tasks, form=form)
+    modules = Modules.query.all()
+    return render_template('sources.html', title='Sources', sources=sources, tasks=tasks, modules=modules, form=form)
 
 @main.route("/trackyr_config", methods=['GET', 'POST'])
 def trackyr_config():
