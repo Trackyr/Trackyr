@@ -3,7 +3,7 @@ from wtforms import StringField, SubmitField, SelectField
 from wtforms.validators import DataRequired
 
 import lib.utils.logger as log
-import trackyr.models as models
+from trackyr.models import Module
 
 class SourceForm(FlaskForm):
     MODULE_CHOICES = [(0,'Please Select a Module')]
