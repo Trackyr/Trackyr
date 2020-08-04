@@ -8,6 +8,7 @@ from trackyr.models import Source, Task, Modules
 from trackyr.sources.forms import SourceForm
 
 import lib.core.source as prime
+import lib.core.modules as mod
 from lib.core.state import State
 
 sources = Blueprint('sources', __name__)
@@ -17,13 +18,10 @@ def create_source():
     State.load()
     
     MODULE_CHOICES = [(0,'Please Select a Module')]
-
-    for subdir, dirs, files in os.walk('modules/sources'):
-        if os.path.exists(os.path.join(subdir,'module_data.json')):
-            with open(os.path.join(subdir,'module_data.json')) as f:
-                data = json.load(f)
-                MODULE_CHOICES.append((data['id'], data['name']))
-
+    
+    for m in mod.get_sources_list():
+        MODULE_CHOICES.append(m)
+    
     form = SourceForm()
     form.module.choices = MODULE_CHOICES
 
