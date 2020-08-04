@@ -1,7 +1,10 @@
 from flask import (Blueprint, abort, flash, redirect, render_template, request, url_for)
 
+import json
+import os
+
 from trackyr import db
-from trackyr.models import Source, Task
+from trackyr.models import Source, Task, Modules
 from trackyr.sources.forms import SourceForm
 
 import lib.core.source as prime
@@ -12,7 +15,18 @@ sources = Blueprint('sources', __name__)
 @sources.route("/sources/create", methods=['GET', 'POST'])
 def create_source():
     State.load()
+    
+    MODULE_CHOICES = [(0,'Please Select a Module')]
+
+    for subdir, dirs, files in os.walk('modules/sources'):
+        if os.path.exists(os.path.join(subdir,'module_data.json')):
+            with open(os.path.join(subdir,'module_data.json')) as f:
+                data = json.load(f)
+                MODULE_CHOICES.append((data['id'], data['name']))
+
     form = SourceForm()
+    form.module.choices = MODULE_CHOICES
+
     if form.validate_on_submit():
         if form.test.data:
             web_url=form.website.data

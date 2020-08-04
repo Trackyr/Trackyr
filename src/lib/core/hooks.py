@@ -98,6 +98,9 @@ def to_new_core_source(source_model):
     s = source_model
 
     module = 0
+    #
+    # Dynamic-fy this:
+    #
     if s.module == 1:
         module = "kijiji"
 
@@ -116,6 +119,9 @@ def to_new_source_model(core_source):
     c = core_source
 
     module = 0
+    #
+    # Dynamic-fy this:
+    #
     if c.module == "kijiji":
         module = 1
 
@@ -131,6 +137,9 @@ def to_existing_source_model(core_source, source_model):
     m = source_model
 
     module = 0
+    #
+    # Dynamic-fy this:
+    #
     if c.module == "kijiji":
         module = 1
 
@@ -157,6 +166,9 @@ def to_new_core_notif_agent(notif_agent_model):
     n = notif_agent_model
 
     module = 0
+    #
+    # Dynamic-fy this:
+    #
     if n.module == 1:
         module = "discord"
 
@@ -177,6 +189,9 @@ def to_new_notif_agent_model(core_notif_agent):
     c = core_notif_agent
 
     module = 0
+    #
+    # Dynamic-fy this:
+    #
     if c.module == "discord":
         module = 1
 
@@ -194,6 +209,9 @@ def to_existing_notif_agent_model(core_notif_agent, notif_agent_model):
     c = core_notif_agent
 
     module = 0
+    #
+    # Dynamic-fy this:
+    #
     if c.module == "discord":
         module = 1
 
