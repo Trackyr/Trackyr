@@ -8,9 +8,14 @@ from sqlalchemy.orm import Session
 import lib.core.task as task
 import lib.core.source as source
 import lib.core.notif_agent as notif_agent
+import lib.core.modules as mod
 
 from trackyr import models
 from trackyr.config import Config
+
+
+import lib.utils.logger as log
+
 
 engine = create_engine(Config.SQLALCHEMY_DATABASE_URI)
 session = Session(engine)
@@ -98,11 +103,10 @@ def to_new_core_source(source_model):
     s = source_model
 
     module = 0
-    #
-    # Dynamic-fy this:
-    #
-    if s.module == 1:
-        module = "kijiji"
+
+    for m in mod.get_sources_list():
+        if m[0] == s.module:
+            module = m[1]
 
     module_properties = {
         "url": s.website,
@@ -119,11 +123,10 @@ def to_new_source_model(core_source):
     c = core_source
 
     module = 0
-    #
-    # Dynamic-fy this:
-    #
-    if c.module == "kijiji":
-        module = 1
+
+    for m in mod.get_sources_list():
+        if m[0] == c.module:
+            module = m[1]
 
     m = models.Source()
     m.id = c.id
@@ -137,12 +140,11 @@ def to_existing_source_model(core_source, source_model):
     m = source_model
 
     module = 0
-    #
-    # Dynamic-fy this:
-    #
-    if c.module == "kijiji":
-        module = 1
 
+    for m in mod.get_sources_list():
+        if m[0] == c.module:
+            module = m[1]
+            
     m.id = c.id
     m.name = c.name
     m.module = module
@@ -169,6 +171,7 @@ def to_new_core_notif_agent(notif_agent_model):
     #
     # Dynamic-fy this:
     #
+
     if n.module == 1:
         module = "discord"
 

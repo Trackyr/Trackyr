@@ -4,7 +4,7 @@
     <p>
         <a class="btn btn-primary" href="{{ url_for('sources.create_source') }}">Create Sources</a>
     </p>
-
+    <br>
     {% for m in modules if m.category == "source" %}
         <h3>{{ m.name }}</h3>
         <table class="table table-hover">
@@ -18,7 +18,7 @@
                 </tr>
             </thead>
             <tbody>
-                {% for s in sources if s.module == m.id%}
+                {% for s in sources if s.module == m.module_id %}
                     <tr>
                         <td>{{ s.name }}</td>
                         <td>{{ s.website }}</td>
@@ -29,6 +29,7 @@
                 {% endfor %}
             </tbody>
         </table>
+        <br>
     {% endfor %}
     <p>
         <a class="btn btn-primary" href="{{ url_for('sources.create_source') }}">Create Sources</a>

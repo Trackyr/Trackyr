@@ -2,7 +2,7 @@ from flask import current_app
 
 from trackyr import db
 from trackyr.notification_agents.forms import NotificationAgentForm
-from trackyr.sources.forms import SourceForm
+#from trackyr.sources.forms import SourceForm
 from trackyr.tasks.forms import TaskForm
 
 class NotificationAgent(db.Model):
@@ -28,7 +28,7 @@ class Source(db.Model):
     subreddit = db.Column (db.String(100), nullable=True)
 
     def __repr__(self):
-        return f"Source('{self.name}')"
+        return f"Source('ID: {self.id}','Name: {self.name}','Module: {self.module}','Website: {self.website}')"
 
 class Task(db.Model):
     __tablename__ = 'tasks'
@@ -47,8 +47,9 @@ class Task(db.Model):
 class Modules(db.Model):
     __tablename__ = 'modules'
     id = db.Column(db.Integer, primary_key=True)
+    module_id = db.Column(db.Integer, nullable=True)
     category = db.Column(db.String(100), nullable=False)
     name = db.Column(db.String(100), nullable=False)
 
     def __repr__(self):
-        return f"Module('ID: {self.id}','Category: {self.category}','Name: {self.name}'"
+        return f"Module('ID: {self.id}','Module ID: {self.module_id}','Category: {self.category}','Name: {self.name}')"
