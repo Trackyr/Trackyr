@@ -118,4 +118,25 @@ def delete_source(source_id):
 
     flash('Your source has been deleted.', 'top_flash_success')
     return redirect(url_for('main.sources'))
-    
+
+@sources.route("/sources/test", methods=['POST'])
+def test_source_agent():
+    json=request.json
+    web_url = json['website']
+    print(web_url)
+    print(json['module'])
+    Dict = {1: 'kijiji'}
+
+    prime_source = prime.Source(module=Dict.get(int(json['module'])),
+                                module_properties={'url': web_url, 'botname': "prime"})
+
+    try:
+        total_ads = prime.test_webui_source(prime_source).total_new_ads
+    except:
+        return "Not a valid source"
+    else:
+        return  f"Found {total_ads} new ads" \
+            if total_ads != 1 else "Found 1 new ad"
+    finally:
+        if web_url == "":
+            return "Not a valid source"
