@@ -215,7 +215,7 @@ WantedBy=multi-user.target
 [Service]
 User=$USERVAR
 WorkingDirectory=$TRACKYR_LOCAL_PATH/src
-ExecStart=/home/$USERVAR/.local/bin/gunicorn -b 0.0.0.0:5000 -w 3 -t 180 run:app
+ExecStart=/home/$USERVAR/.local/bin/gunicorn -b 0.0.0.0:5000 -w 1 -t 180 run:app
 TimeoutSec=600
 Restart=on-failure
 RuntimeDirectoryMode=755
