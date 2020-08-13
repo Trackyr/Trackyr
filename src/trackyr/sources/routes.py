@@ -127,6 +127,9 @@ def test_source_agent():
     print(json['module'])
     Dict = {1: 'kijiji'}
 
+    if not web_url:
+        return "Not a valid source"
+
     prime_source = prime.Source(module=Dict.get(int(json['module'])),
                                 module_properties={'url': web_url, 'botname': "prime"})
 
