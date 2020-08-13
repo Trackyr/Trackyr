@@ -137,6 +137,3 @@ def test_source_agent():
     else:
         return  f"Found {total_ads} new ads" \
             if total_ads != 1 else "Found 1 new ad"
-    finally:
-        if web_url == "":
-            return "Not a valid source"
