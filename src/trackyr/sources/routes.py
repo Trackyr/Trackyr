@@ -8,8 +8,9 @@ from trackyr.models import Source, Task, Modules
 from trackyr.sources.forms import SourceForm
 
 import lib.core.source as prime
-import lib.core.modules as mod
 from lib.core.state import State
+
+import lib.core.modules as mod
 
 sources = Blueprint('sources', __name__)
 
@@ -18,7 +19,6 @@ def create_source():
     State.load()
     
     MODULE_CHOICES = [(0,'Please Select a Module')]
-    
     for m in mod.get_sources_list():
         MODULE_CHOICES.append(m)
     
@@ -29,9 +29,9 @@ def create_source():
         if form.test.data:
             web_url=form.website.data
 
-            Dict = {1: 'kijiji'}
-
-            prime_source = prime.Source(module=Dict.get(form.module.data), module_properties={'url':web_url,'botname':"prime"})
+            for mc in MODULE_CHOICES:
+                if mc[0] == form.module.data:
+                    prime_source = prime.Source(module=mc[1].lower(), module_properties={'url':web_url,'botname':"prime"})
 
             try:
                 total_ads = prime.test_webui_source(prime_source).total_new_ads
@@ -67,14 +67,21 @@ def create_source():
 def edit_source(source_id):
     State.load()
     source = Source.query.get_or_404(source_id)
+
+    MODULE_CHOICES = [(0,'Please Select a Module')]
+    for m in mod.get_sources_list():
+        MODULE_CHOICES.append(m)
+    
     form = SourceForm()
+    form.module.choices = MODULE_CHOICES
+
     if form.validate_on_submit():
         if form.test.data:
             web_url=form.website.data
 
-            Dict = {1: 'kijiji'}
-
-            prime_source = prime.Source(module=Dict.get(form.module.data), module_properties={'url':web_url,'botname':"prime"})
+            for mc in MODULE_CHOICES:
+                if mc[0] == form.module.data:
+                    prime_source = prime.Source(module=mc[1].lower(), module_properties={'url':web_url,'botname':"prime"})
 
             try:
                 total_ads = prime.test_webui_source(prime_source).total_new_ads

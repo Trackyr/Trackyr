@@ -5,4 +5,5 @@ app = create_app()
 
 if __name__ == '__main__':
     app.run(debug=True)
-    modules.generate_sources_in_db()
+
+modules.generate_sources_in_db()
