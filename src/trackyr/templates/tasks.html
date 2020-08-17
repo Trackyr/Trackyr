@@ -33,7 +33,6 @@
                         {% endfor %}
                     </td>
                     <td>
-                        {% set comma = joiner(", ") %}
                         {% for notification_agent in notification_agents %}
                             {% for n in task.notification_agent %}
                                 {% if n == notification_agent.id %}
