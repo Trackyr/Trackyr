@@ -27,7 +27,7 @@
                         {% for source in sources %}
                             {% for t in task.source %}
                                 {% if t == source.id %}
-                                          {{ source.name.strip() }}{{ ", " if not loop.last }}
+                                          {{ source.name }}{{ ", " if not loop.last }}
                                 {% endif %}
                             {% endfor %}
                         {% endfor %}
