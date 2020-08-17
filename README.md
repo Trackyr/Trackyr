@@ -1,12 +1,30 @@
-<h1>:robot: Trackyr</h1>
+<h1 align="center">
+  <br>
+  Trackyr
+  <br>
+</h1>
 
+<h4 align="center">An aggregator for second-hand and classified ad sites.</h4>
 
-<h2>Build Statuses</h2>
+<p align="center">
+  :star: Star us on GitHub! || :eye: Watch for updates!
+</p>
 
-[![Codacy Badge](https://api.codacy.com/project/badge/Grade/2abccb4b868f41c792ca213c647ca003)](https://www.codacy.com/gh/Trackyr/Trackyr?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=Trackyr/Trackyr&amp;utm_campaign=Badge_Grade)
-
-
-
+<p align="center">
+  <a href="https://www.codacy.com/gh/Trackyr/Trackyr?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=Trackyr/Trackyr&amp;utm_campaign=Badge_Grade">
+    <img src="https://api.codacy.com/project/badge/Grade/2abccb4b868f41c792ca213c647ca003" alt="Codacy">
+  </a>
+  <a href="https://discord.com/invite/zCcH2z?utm_source=Discord%20Widget&utm_medium=Connect">
+    <img src="https://img.shields.io/discord/689477994750017558?label=Discord" alt="Discord">
+  </a>
+  <a href="https://github.com/Trackyr/Trackyr/issues">
+    <img src="https://img.shields.io/github/issues/Trackyr/Trackyr?label=Issues" alt="Issues">
+  </a>
+  <a href="https://github.com/Trackyr/Trackyr/pulls">
+    <img src="https://img.shields.io/github/issues-pr/Trackyr/Trackyr?label=Pull%20Requests" alt="Pull Requests">
+  </a>
+</p>
+  
 <h2>One-Command Installation</h2>
 
 Known to work on a fresh Ubuntu 18.04 LTS server
