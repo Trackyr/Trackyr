@@ -27,8 +27,7 @@
                         {% for source in sources %}
                             {% for t in task.source %}
                                 {% if t == source.id %}
-                                    {{ source.name }}
-                                    {{ "," if not loop.last }}
+                                          {{ source.name }}{{ ", " if not loop.last }}
                                 {% endif %}
                             {% endfor %}
                         {% endfor %}
@@ -37,8 +36,7 @@
                         {% for notification_agent in notification_agents %}
                             {% for n in task.notification_agent %}
                                 {% if n == notification_agent.id %}
-                                    {{ notification_agent.name }}
-                                    {{ "," if not loop.last }}
+                                  {{notification_agent.name}}{{ ", " if not loop.last }}
                                 {% endif %}
                             {% endfor %}
                         {% endfor %}
