@@ -349,6 +349,7 @@ def scrape(
         save_ads=True,
         ignore_old_ads=False
     ):
+
     from lib.core.state import State
     import lib.core.notif_agent as notif_agent
 
@@ -369,7 +370,6 @@ def scrape(
     module = source_modules[source.module.lower()]
 
     old_ads = []
-
     if ignore_old_ads == False:
         if source.module in ads:
             old_ads = ads[source.module]
@@ -380,12 +380,11 @@ def scrape(
 
     else:
         log.info_print("Ignoring old ads...")
-
     new_ads, ad_title = module.scrape_for_ads(old_ads, exclude, include, **source.module_properties)
 
     info_string = f"Found {len(new_ads)} new ads" \
         if len(new_ads) != 1 else "Found 1 new ad"
-    
+
     log.info_print(info_string)
 
     num_ads = len(new_ads)
@@ -424,7 +423,7 @@ def scrape(
         log.debug(f"Total all-time processed ads: {len(module.old_ad_ids)}")
     else:
         log.info_print(f"Saving ads disabled. Skipping...")
-        
+
     print()
 
     return ScrapeSummary(
@@ -432,3 +431,4 @@ def scrape(
         latest_ads = list(new_ads)[-3:],
         total_new_ads = len(new_ads)
     )
+    

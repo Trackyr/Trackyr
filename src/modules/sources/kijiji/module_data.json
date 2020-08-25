@@ -1,4 +1,22 @@
 {
-    "name": "Kijiji",
-    "id": 1
+    "name":"Kijiji",
+    "id":1,
+    "form":[
+        {
+            "field": "input",
+            "id": "name",
+            "name": "Name",
+            "required": true,
+            "type": "text",
+            "cssClass": "form-control form-control-lg"
+        },
+        {
+            "field": "input",
+            "id": "website",
+            "name": "Website",
+            "required": true,
+            "type": "text",
+            "cssClass": "form-control form-control-lg"
+        }
+    ]
 }

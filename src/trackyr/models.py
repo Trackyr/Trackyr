@@ -23,9 +23,6 @@ class Source(db.Model):
     module = db.Column(db.Integer, nullable=False)
     name = db.Column(db.String(100), nullable=False)
     website = db.Column(db.String(500), nullable=True)
-    location = db.Column(db.String(100), nullable=True)
-    range = db.Column (db.String(100), nullable=True)
-    subreddit = db.Column (db.String(100), nullable=True)
 
     def __repr__(self):
         return f"Source('ID: {self.id}','Name: {self.name}','Module: {self.module}','Website: {self.website}')"

@@ -31,5 +31,5 @@ def create_app(config_class=Config):
     app.register_blueprint(tasks)
     app.register_blueprint(trackyr_config)
     app.register_blueprint(errors)
-    
+
     return app

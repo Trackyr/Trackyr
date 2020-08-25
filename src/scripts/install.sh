@@ -74,7 +74,7 @@ if [[ -d "$TRACKYR_LOCAL_PATH" ]]; then
     printf "${ORANGE}[> INFO <] $TRACKYR_LOCAL_PATH already exists, deleting the contents so that we can clone into it.${NC}\n"
     sudo rm -rf "$TRACKYR_LOCAL_PATH"
 fi
-sudo git clone -q $TRACKYR_GIT_PATH $TRACKYR_LOCAL_PATH
+sudo git clone --single-branch --branch modular-module-system $TRACKYR_GIT_PATH $TRACKYR_LOCAL_PATH
 sudo chown -R $USERVAR:$USERVAR $TRACKYR_LOCAL_PATH
 
 sudo touch $TRACKYR_LOCAL_PATH/src/ads.json

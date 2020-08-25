@@ -2,7 +2,17 @@
 {% block content %}
     <h1>{{ title }}</h1>
     <p>
-        <a class="btn btn-primary" href="{{ url_for('sources.create_source') }}">Create Sources</a>
+        <div class="btn-group">
+            <button type="button" class="btn btn-primary">Create New Source</button>
+            <button type="button" class="btn btn-primary dropdown-toggle dropdown-toggle-split" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                <span class="sr-only">Toggle Dropdown</span>
+            </button>
+            <div class="dropdown-menu">
+                {% for m in modules if m.category == "source" %}
+                    <a class="dropdown-item" href="{{ url_for('sources.create_source', module_id=m.module_id) }}">{{ m.name }}</a>
+                {% endfor %}
+            </div>
+          </div>
     </p>
     <br>
     {% for m in modules if m.category == "source" %}
@@ -12,8 +22,6 @@
                 <tr>
                     <th scope="col">Name</th>
                     <th scope="col">Website</th>
-                    <th scope="col">Location</th>
-                    <th scope="col">Range</th>
                     <th scope="col">Actions</th>
                 </tr>
             </thead>
@@ -22,8 +30,6 @@
                     <tr>
                         <td>{{ s.name }}</td>
                         <td>{{ s.website }}</td>
-                        <td>{{ s.location }}</td>
-                        <td>{{ s.range }} km</td>
                         <td><a class="btn btn-secondary btm-sm mt-1 mb-1" href="{{ url_for('sources.edit_source', source_id=s.id) }}"><i class="fa fa-pencil" style="font-size:16px"></i></a>  <button class="btn btn-danger btm-sm mt-1 mb-1"  data-toggle="modal" data-target="#modalDelete{{ s.id }}"><i class="fa fa-trash" style="font-size:16px"></i></button></td>
                     </tr>
                 {% endfor %}
@@ -31,9 +37,6 @@
         </table>
         <br>
     {% endfor %}
-    <p>
-        <a class="btn btn-primary" href="{{ url_for('sources.create_source') }}">Create Sources</a>
-    </p>
 
     {% for source in sources %}
         <div class="modal fade" id="modalDelete{{ source.id }}" tabindex="-1" role="dialog" aria-labelledby="modelDeleteTitle" aria-hidden="true">

@@ -14,109 +14,98 @@ import lib.core.modules as mod
 
 sources = Blueprint('sources', __name__)
 
-@sources.route("/sources/create", methods=['GET', 'POST'])
-def create_source():
+@sources.route("/sources/create/<int:module_id>", methods=['GET', 'POST'])
+def create_source(module_id):
     State.load()
-    
-    MODULE_CHOICES = [(0,'Please Select a Module')]
+
     for m in mod.get_sources_list():
-        MODULE_CHOICES.append(m)
-    
+        if m[0] == module_id:
+            module_name = m[1]
+
     form = SourceForm()
-    form.module.choices = MODULE_CHOICES
+    module_form = mod.generate_form(module_id)
 
-    if form.validate_on_submit():
-        if form.test.data:
-            web_url=form.website.data
+    if form.test.data:
+        website = request.form.get('Website')
 
-            for mc in MODULE_CHOICES:
-                if mc[0] == form.module.data:
-                    prime_source = prime.Source(module=mc[1].lower(), module_properties={'url':web_url,'botname':"prime"})
+        prime_source = prime.Source(module=module_name.lower(), module_properties={'url':website,'botname':"prime"})
 
-            try:
-                total_ads = prime.test_webui_source(prime_source).total_new_ads
-            except:
-                message = "Not a valid source"
-            else:
-                message = f"Found {total_ads} new ads" \
-                    if total_ads != 1 else "Found 1 new ad"
-            finally:
-                if web_url == "":
-                    message = "Not a valid source"
-                flash(message, "notification")
-
+        try:
+            total_ads = prime.test_webui_source(prime_source).total_new_ads
+        except:
+            message = "Not a valid source"
         else:
-            source = Source(module=form.module.data,
-                            name=form.name.data,
-                            website=form.website.data,
-                            location=form.location.data,
-                            range=form.range.data,
-                            # subreddit=form.subreddit.data
-                            )
-            db.session.add(source)
-            db.session.commit()
+            message = f"Found {total_ads} new ads" \
+                if total_ads != 1 else "Found 1 new ad"
+        finally:
+            if website == "":
+                message = "Not a valid source"
+            flash(message, "notification")
 
-            State.refresh_sources()
+    elif form.submit.data:
+        name = request.form.get('Name')
+        website = request.form.get('Website')
+        
+        source = Source(module=module_id,
+                        name=name,
+                        website=website)
 
-            flash('Your source has been saved!', 'top_flash_success')
-            return redirect(url_for('main.sources'))
+        db.session.add(source)
+        db.session.commit()
+
+        State.refresh_sources()
+
+        flash('Your source has been saved!', 'top_flash_success')
+        return redirect(url_for('main.sources'))
+
     return render_template('create-source.html', title='Create Source',
-                            form=form, legend='Create Source')
+                            legend=f'Create Source - {module_name}', form=form, module_form=module_form)
 
 @sources.route("/sources/<int:source_id>/edit", methods=['GET', 'POST'])
 def edit_source(source_id):
     State.load()
     source = Source.query.get_or_404(source_id)
 
-    MODULE_CHOICES = [(0,'Please Select a Module')]
     for m in mod.get_sources_list():
-        MODULE_CHOICES.append(m)
-    
+        if m[0] == source.module:
+            module_name = m[1]
+
     form = SourceForm()
-    form.module.choices = MODULE_CHOICES
+    module_form = mod.generate_form(source.module)
 
-    if form.validate_on_submit():
-        if form.test.data:
-            web_url=form.website.data
+    if form.test.data:
+        website = request.form.get('Website')
 
-            for mc in MODULE_CHOICES:
-                if mc[0] == form.module.data:
-                    prime_source = prime.Source(module=mc[1].lower(), module_properties={'url':web_url,'botname':"prime"})
+        prime_source = prime.Source(module=module_name.lower(), module_properties={'url':website,'botname':"prime"})
 
-            try:
-                total_ads = prime.test_webui_source(prime_source).total_new_ads
-            except:
-                message = "Not a valid source"
-            else:
-                message = f"Found {total_ads} new ads" \
-                    if total_ads != 1 else "Found 1 new ad"
-            finally:
-                if web_url == "":
-                    message = "Not a valid source"
-                flash(message, "notification")
-
+        try:
+            total_ads = prime.test_webui_source(prime_source).total_new_ads
+        except:
+            message = "Not a valid source"
         else:
-            source.module = form.module.data
-            source.name = form.name.data
-            source.website = form.website.data
-            source.location = form.location.data
-            source.range = form.range.data
-            # source.subreddit = form.subreddit.data
-            db.session.commit()
+            message = f"Found {total_ads} new ads" \
+                if total_ads != 1 else "Found 1 new ad"
+        finally:
+            if web_url == "":
+                message = "Not a valid source"
+            flash(message, "notification")
 
-            State.refresh_sources()
+    elif form.submit.data:
+        name = request.form.get('Name')
+        website = request.form.get('Website')
 
-            flash('Your source has been updated!', 'top_flash_success')
-            return redirect(url_for('main.sources', source_id=source.id))
-    elif request.method == 'GET':
-        form.module.data = source.module
-        form.name.data = source.name
-        form.website.data = source.website
-        form.location.data = source.location
-        form.range.data = source.range
-        # form.subreddit.data = source.subreddit
+        db.session.commit()
+
+        State.refresh_sources()
+
+        flash('Your source has been updated!', 'top_flash_success')
+        return redirect(url_for('main.sources', source_id=source.id))
+    
+    if request.method == 'GET':
+        pass
+    
     return render_template('create-source.html', title='Update Source',
-                            form=form, legend='Update Source')
+                            legend='Update Source', form=form, module_form=module_form)
 
 @sources.route("/sources/<int:source_id>/delete", methods=['GET', 'POST'])
 def delete_source(source_id):
@@ -138,3 +127,11 @@ def delete_source(source_id):
     flash('Your source has been deleted.', 'top_flash_success')
     return redirect(url_for('main.sources'))
     
+@sources.route("/sources/generate_form/<int:module_id>", methods=['GET', 'POST'])
+def generate_form(module_id):
+    mod.generate_form(module_id)
+    
+    form = SourceForm()
+    
+    return render_template('create-source.html', title='Create Source',
+                            form=form, legend='Create Source')
