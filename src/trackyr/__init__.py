@@ -6,6 +6,12 @@ from flask_bootstrap import Bootstrap
 from flask_colorpicker import colorpicker
 from flask_wtf.csrf import CSRFProtect
 
+from sqlalchemy import create_engine
+from sqlalchemy.orm import Session
+
+engine = create_engine(Config.SQLALCHEMY_DATABASE_URI)
+session = Session(engine)
+
 db = SQLAlchemy()
 
 def create_app(config_class=Config):
@@ -31,5 +37,9 @@ def create_app(config_class=Config):
     app.register_blueprint(tasks)
     app.register_blueprint(trackyr_config)
     app.register_blueprint(errors)
+
+    if engine.dialect.has_table(engine, "modules"):
+        import lib.core.modules as modules
+        modules.generate_sources_in_db()
 
     return app
