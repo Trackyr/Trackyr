@@ -1,4 +1,5 @@
 from os import path, walk
+
 import json
 
 from sqlalchemy import create_engine
@@ -12,7 +13,10 @@ session = Session(engine)
 
 def get_sources_list():
     source_list = []
-    for subdir, dirs, files in walk('modules/sources'):
+    
+    base_path = path.dirname(path.abspath(__file__ + "/../.."))
+
+    for subdir, dirs, files in walk(path.join(base_path,'modules/sources')):
         if path.exists(path.join(subdir,'module_data.json')):
             with open(path.join(subdir,'module_data.json')) as f:
                 data = json.load(f)
@@ -33,7 +37,7 @@ def generate_sources_in_db():
     else:
         for l in get_sources_list():
 
-            # this is important otherwise Line 40 doesn't work.
+            # this is important otherwise Line 44 doesn't work.
             for los in list_of_sources:
                 pass
             
