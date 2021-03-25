@@ -27,7 +27,7 @@ psycopg2-binary==2.8.5
 python-crontab==2.5.1
 python-dateutil==2.8.1
 python-editor==1.0.4
-PyYAML==4.2b1
+PyYAML==5.4
 requests==2.20.0
 six==1.11.0
 soupsieve==2.0.1
